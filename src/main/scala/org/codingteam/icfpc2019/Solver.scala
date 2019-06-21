@@ -37,8 +37,9 @@ object Solver {
           TurnCounterClockwise.apply(bestBoard),
           // TODO[M]: Generate all the positions where a manipulator can be attached, and use them to create new Boards
 //          AttachManipulator.apply(bestBoard),
-          AttachFastWheels.apply(bestBoard),
-          StartDrill.apply(bestBoard))
+//          AttachFastWheels.apply(bestBoard),
+//          StartDrill.apply(bestBoard)
+        )
 
         val boardsToCheck = neighbours
             .filter(_.isValid())
