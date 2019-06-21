@@ -2,6 +2,8 @@ package org.codingteam.icfpc2019
 
 import fastparse.NoWhitespace._
 import fastparse._
+import NoWhitespace._
+import main.scala.org.codingteam.icfpc2019.Board
 
 import scala.io.Source
 
@@ -43,8 +45,13 @@ object AppEntry extends App {
         val contents = try source.mkString finally source.close()
         val Parsed.Success(task, successIndex) = parse(contents, parseTask(_))
         // TODO[F]: Put the build results into the output
+        val board = Board(task)
         println(task)
-        println(successIndex)
+        println(board)
+        // println(successIndex)
+
+        //val solution = Solver.solve(task)
+        //println(solution)
 
       case Array("--test-awt") =>
         val obstacle = Obstacle(List(
