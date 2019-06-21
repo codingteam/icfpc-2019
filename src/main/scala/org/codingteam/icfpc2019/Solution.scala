@@ -23,7 +23,7 @@ case object MoveDown extends Action {
 
   override def apply(board : Board) : Board = {
     val bot = board.bot
-    val newBot = bot.copy(position = Pos(bot.position.x, bot.position.y+1))
+    val newBot = bot.copy(position = Pos(bot.position.x, bot.position.y-1))
     val newSolution = board.solution.addAction(MoveDown)
     board.tick.copy(bot = newBot, solution = newSolution)
   }
