@@ -8,7 +8,20 @@ object Solver {
     def solve(task: Task): Solution = {
       val initialBoard = Board(task)
 
-      def solutionLength(board: Board): Int = board.wrappedCells.size - board.solution.length
+      def solutionLength(board: Board): Int = {
+        val x = board.bot.position.x
+        val y = board.bot.position.y
+
+        val neighbours = List[Pos](
+          Pos(x-1, y-1), Pos(x-1, y), Pos(x-1, y+1),
+          Pos(x, y-1), Pos(x, y), Pos(x, y+1),
+          Pos(x+1, y-1), Pos(x+1, y), Pos(x+1, y+1))
+        val couldWrap = neighbours
+          .filter(pos => pos.isValid())
+          .filter(board.isValidPosition(_))
+          .filter(!board.wrappedCells.contains(_))
+        board.wrappedCells.size - board.solution.length - couldWrap.size
+      }
 
       val open = PriorityQueue[Board](initialBoard)(Ordering.by(solutionLength))
       println("Starting with" + initialBoard.toString)
