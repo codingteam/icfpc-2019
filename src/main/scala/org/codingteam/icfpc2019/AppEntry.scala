@@ -45,7 +45,15 @@ object AppEntry extends App {
         println(successIndex)
 
       case Array("--test-awt") =>
-        val obstacle = Obstacle(List(Pos(5, 6), Pos(5, 12), Pos(10, 12), Pos(10, 6)))
+        val obstacle = Obstacle(List(
+          Pos(4, 6),
+          Pos(4, 12),
+          Pos(7, 12),
+          Pos(7, 8),
+          Pos(10, 8),
+          Pos(10, 12),
+          Pos(10, 6),
+        ))
         val results = for (y <- 0 until 15) yield {
           for (x <- 0 until 15) yield {
             val pos = Pos(x, y)
