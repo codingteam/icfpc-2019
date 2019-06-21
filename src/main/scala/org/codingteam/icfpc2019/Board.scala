@@ -1,6 +1,6 @@
 package main.scala.org.codingteam.icfpc2019
 
-import org.codingteam.icfpc2019.{Obstacle, Pos, Solution, Task}
+import org.codingteam.icfpc2019.{Action, Obstacle, Pos, Solution, Task}
 
 case class Board(task : Task, bot : Bot,
                  wrappedCells : Set[Pos],
@@ -40,5 +40,24 @@ case class Board(task : Task, bot : Bot,
 
     println("there are " + cellsCount.toString() + " cells total, " + wrappedCells.size.toString() + " of which are wrapped")
     wrappedCells.size >= cellsCount
+  }
+
+  override def toString: String = {
+    var result : String = ""
+    for (x <- task.map.minX to task.map.maxX) {
+      for (y <- task.map.minY to task.map.maxY) {
+        val pos = Pos(x,y)
+        val point = if (isValidPosition(pos)) " " else "#"
+        result = result + point
+      }
+      result = result + "\n"
+    }
+    result
+  }
+}
+
+object Board {
+  def apply(task : Task) : Board = {
+    Board(task, Bot(task.startPos, Direction.RIGHT, Set[Pos]()), Set[Pos](), task.obstacles, 0, 0, new Solution(List[Action]()))
   }
 }

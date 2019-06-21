@@ -6,7 +6,7 @@ import main.scala.org.codingteam.icfpc2019.{Board, Bot, Direction}
 
 object Solver {
     def solve(task: Task): Solution = {
-      val initialBoard = Board(task, Bot(task.startPos, Direction.RIGHT, Set[Pos]()), Set[Pos](), task.obstacles, 0, 0, new Solution(List[Action]()))
+      val initialBoard = Board(task)
 
       def solutionLength(board: Board): Int = board.wrappedCells.size - board.solution.length
 
