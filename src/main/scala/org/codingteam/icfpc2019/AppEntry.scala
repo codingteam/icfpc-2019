@@ -20,7 +20,7 @@ object AppEntry extends App {
   def parseBooster[_: P]: P[Booster] = P( parseManipulatorExtension | parseFastWheels | parseDrill | parseMysteriousPoint )
   def parseBoosters[_: P]: P[List[Booster]] = P( parseBooster.rep(sep=";") ).map(_.toList)
 
-  def parseTask[_: P]: P[Task] = P( parseTaskMap ~ "#" ~ parsePos ~ "#" ~ parseObstacles ~ "#" ~ parseBoosters ).map((data) => Task(data._1, data._2, data._3, data._4))
+  def parseTask[_: P]: P[Task] = P( parseTaskMap ~ "#" ~ parsePos ~ "#" ~ parseObstacles ~ "#" ~ parseBoosters ~ End).map((data) => Task(data._1, data._2, data._3, data._4))
 
   private def run(): Unit = {
     args match {
