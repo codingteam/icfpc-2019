@@ -42,7 +42,12 @@ case class Board(task : Task, bot : Bot,
     for (x <- task.map.minX to task.map.maxX) {
       for (y <- task.map.minY to task.map.maxY) {
         val pos = Pos(x,y)
-        val point = if (isValidPosition(pos)) " " else "#"
+        val point = if (isValidPosition(pos))
+                      if (wrappedCells.contains(pos))
+                        "+"
+                      else
+                        " "
+                    else "#"
         result = result + point
       }
       result = result + "\n"

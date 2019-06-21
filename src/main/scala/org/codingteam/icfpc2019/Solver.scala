@@ -19,7 +19,7 @@ object Solver {
         println("closed contains " + closed.size.toString + " boards")
 
         val bestBoard = open.dequeue()
-        println("best board is" + bestBoard.toString)
+        println("best board is\n" + bestBoard.toString)
         if (bestBoard.isWrapped()) {
           println("...and it's not wrapped yet")
           return bestBoard.solution
