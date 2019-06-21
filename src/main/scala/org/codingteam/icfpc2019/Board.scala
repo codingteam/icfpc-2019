@@ -30,14 +30,9 @@ case class Board(task : Task, bot : Bot,
 
   // TODO[M]: Replace with a full-fledged check. For now, I assume there are no obstacles
   def isWrapped() : Boolean = {
-    assert(task.obstacles.isEmpty)
-
-    val bottomLeftX = task.map.vertices.map(pos => pos.x).min
-    val bottomLeftY = task.map.vertices.map(pos => pos.y).min
-    val topRightX = task.map.vertices.map(pos => pos.x).max
-    val topRightY = task.map.vertices.map(pos => pos.y).max
-    val cellsCount = (topRightX - bottomLeftX) * (topRightY - bottomLeftY)
-
+    val boardArea = Obstacle(task.map.vertices).getArea
+    val obstaclesArea = task.obstacles.map(_.getArea).sum
+    val cellsCount = boardArea - obstaclesArea
     println("there are " + cellsCount.toString() + " cells total, " + wrappedCells.size.toString() + " of which are wrapped")
     wrappedCells.size >= cellsCount
   }
@@ -52,7 +47,7 @@ case class Board(task : Task, bot : Bot,
       }
       result = result + "\n"
     }
-    result
+    result + "\n" + solution.toString
   }
 }
 

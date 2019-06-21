@@ -110,4 +110,9 @@ case class Bot (position: Pos, direction : Direction, extraManipulators : Set[Po
     }
     base ++ extraManipulators.map(m => translatePos(m))
   }
+
+  def wrappedCells(board : Board): Set[Pos] = {
+    // FIXME: this does not take into account rules about "visibility" (2.3)!
+    occupiedCells().filter(p => board.isValidPosition(p))
+  }
 }

@@ -7,7 +7,7 @@ import org.codingteam.icfpc2019.spatialutils.{BitArray2D, Index2D, Index2DRange}
 
 case class Obstacle(vertices: List[Pos]) {
 
-  private lazy val (range, filled) = {
+  private lazy val (range, filled, area) = {
     def checkedInt32(v: BigInt) = {
       require(v >= Int.MinValue && v <= Int.MaxValue, s"$v is too big for int")
       v.toInt
@@ -36,16 +36,24 @@ case class Obstacle(vertices: List[Pos]) {
     g.fillPolygon(xs map (v => v - minx * 2), ys map (v => v - miny * 2), xs.size)
 
     val matrix = new BitArray2D(size)
+    var area = 0
     for (ind <- matrix.indices) {
       // TODO: bulk read pixels (for speedup).
-      matrix(ind) = img.getRGB(ind.x * 2 + 1, ind.y * 2 + 1) != 0xff000000
+      val isFilled = img.getRGB(ind.x * 2 + 1, ind.y * 2 + 1) != 0xff000000
+      matrix(ind) = isFilled
+      if (isFilled)
+        area += 1
       //      println(s"m($ind)=${matrix(ind)}")
     }
-    (Index2DRange(start, start + size), matrix)
+    (Index2DRange(start, start + size), matrix, area)
   }
 
   def containsPosition(pos: Pos): Boolean = {
     val ind = pos.toIndex2D
     (range contains ind) && filled(ind - range.a)
+  }
+
+  def getArea() : BigInt = {
+    area
   }
 }
