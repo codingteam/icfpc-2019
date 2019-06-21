@@ -18,10 +18,6 @@ object AppEntry extends App {
 
   def parseTaskMap[_: P]: P[TaskMap] = P(parsePos.rep(sep = ",")).map(x => TaskMap(x.toList))
 
-  def parseObstacle[_: P]: P[Obstacle] = P(parsePos.rep(sep = ",")).map(_.toList).map(Obstacle(_))
-
-  def parseObstacles[_: P]: P[List[Obstacle]] = P(parseObstacle.rep(sep = ";")).map(_.toList)
-
   def parseManipulatorExtension[_: P]: P[ManipulatorExtension] = P("B" ~ parsePos).map(ManipulatorExtension(_))
   def parseObstacle[_: P]: P[Obstacle] = P( parsePos.rep(min=2, sep=",") ).map(_.toList).map(Obstacle(_))
   def parseObstacles[_: P]: P[List[Obstacle]] = P( parseObstacle.rep(sep=";") ).map(_.toList)
@@ -50,8 +46,8 @@ object AppEntry extends App {
         println(board)
         // println(successIndex)
 
-        //val solution = Solver.solve(task)
-        //println(solution)
+        val solution = Solver.solve(task)
+        println(solution)
 
       case Array("--test-awt") =>
         val obstacle = Obstacle(List(
