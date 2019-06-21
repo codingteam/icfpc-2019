@@ -37,6 +37,8 @@ case class Board(task : Task, bot : Bot,
     val topRightX = task.map.vertices.map(pos => pos.x).max
     val topRightY = task.map.vertices.map(pos => pos.y).max
     val cellsCount = (topRightX - bottomLeftX) * (topRightY - bottomLeftY)
-    wrappedCells.size == cellsCount
+
+    println("there are " + cellsCount.toString() + " cells total, " + wrappedCells.size.toString() + " of which are wrapped")
+    wrappedCells.size >= cellsCount
   }
 }
