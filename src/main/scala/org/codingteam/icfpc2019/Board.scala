@@ -27,4 +27,16 @@ case class Board(task : Task, bot : Bot,
   def isDrillEnabled() : Boolean = remainingDrill > 0
 
   def isFastWheelsEnabled() : Boolean = remainingFastWheels > 0
+
+  // TODO[M]: Replace with a full-fledged check. For now, I assume there are no obstacles
+  def isWrapped() : Boolean = {
+    assert(task.obstacles.isEmpty)
+
+    val bottomLeftX = task.map.vertices.map(pos => pos.x).min
+    val bottomLeftY = task.map.vertices.map(pos => pos.y).min
+    val topRightX = task.map.vertices.map(pos => pos.x).max
+    val topRightY = task.map.vertices.map(pos => pos.y).max
+    val cellsCount = (topRightX - bottomLeftX) * (topRightY - bottomLeftY)
+    wrappedCells.size == cellsCount
+  }
 }

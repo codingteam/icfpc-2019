@@ -41,9 +41,9 @@ object AppEntry extends App {
       case Array("--problem-file", filepath) =>
         val source = Source.fromFile(filepath)
         val contents = try source.mkString finally source.close()
-        val Parsed.Success(value, successIndex) = parse(contents, parseTask(_))
+        val Parsed.Success(task, successIndex) = parse(contents, parseTask(_))
         // TODO[F]: Put the build results into the output
-        println(value)
+        println(task)
         println(successIndex)
 
       case Array("--test-awt") =>
@@ -68,9 +68,11 @@ object AppEntry extends App {
       case _ =>
         println("Run with --problem-file=<filepath.desc> to solve a particular problem")
 
-        val Parsed.Success(value, successIndex) = parse("(0,0),(10,0),(10,10),(0,10)#(0,0)#(4,2),(6,2),(6,7),(4,7);(5,8),(6,8),(6,9),(5,9)#B(0,1);B(1,1);F(0,2);F(1,2);L(0,3);X(0,9)", parseTask(_))
-        println(value)
+        val Parsed.Success(task, successIndex) = parse("(0,0),(10,0),(10,10),(0,10)#(0,0)##", parseTask(_))
+        println(task)
         println(successIndex)
+
+        println(Solver.solve(task))
     }
   }
 

@@ -115,4 +115,6 @@ class Solution(reversedActions : List[Action]) {
   override def toString: String = reversedActions.reverse.map(_.toString).mkString("")
 
   def addAction(action: Action): Solution = return new Solution(action +: reversedActions)
+
+  def length(): Int = reversedActions.length
 }
