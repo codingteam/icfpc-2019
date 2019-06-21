@@ -21,7 +21,7 @@ case class Obstacle(vertices: List[Pos]) {
     val miny = ys.min / 2
     val maxx = xs.max / 2
     val maxy = ys.max / 2
-    val start = Index2D(minx, maxx)
+    val start = Index2D(minx, miny)
     val stop = Index2D(maxx, maxy)
     val size = stop - start
     // 2 times greater.
