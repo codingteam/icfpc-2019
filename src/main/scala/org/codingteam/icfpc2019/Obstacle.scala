@@ -3,7 +3,7 @@ package org.codingteam.icfpc2019
 import java.awt.Color
 import java.awt.image.BufferedImage
 
-import org.codingteam.icfpc2019.spatialutils.{Array2D, Index2D, Index2DRange}
+import org.codingteam.icfpc2019.spatialutils.{BitArray2D, Index2D, Index2DRange}
 
 case class Obstacle(vertices: List[Pos]) {
 
@@ -35,7 +35,7 @@ case class Obstacle(vertices: List[Pos]) {
     //    println(ys.toSeq)
     g.fillPolygon(xs map (v => v - minx * 2), ys map (v => v - miny * 2), xs.size)
 
-    val matrix = new Array2D[Boolean](size)
+    val matrix = new BitArray2D(size)
     for (ind <- matrix.indices) {
       // TODO: bulk read pixels (for speedup).
       matrix(ind) = img.getRGB(ind.x * 2 + 1, ind.y * 2 + 1) != 0xff000000
