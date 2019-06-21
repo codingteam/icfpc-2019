@@ -14,7 +14,7 @@ case object MoveUp extends Action {
     val bot = board.bot
     val newBot = bot.copy(position = Pos(bot.position.x, bot.position.y+1))
     val newWrappedCells = board.wrappedCells ++
-      (bot.occupiedCells() ++ newBot.occupiedCells())
+      (bot.wrappedCells(board) ++ newBot.wrappedCells(board))
         .filter(pos => pos.x < board.task.map.maxX && pos.y < board.task.map.maxY)
     val newSolution = board.solution.addAction(MoveUp)
     board.tick.copy(bot = newBot, solution = newSolution, wrappedCells =  newWrappedCells)
@@ -28,7 +28,7 @@ case object MoveDown extends Action {
     val bot = board.bot
     val newBot = bot.copy(position = Pos(bot.position.x, bot.position.y-1))
     val newWrappedCells = board.wrappedCells ++
-      (bot.occupiedCells() ++ newBot.occupiedCells())
+      (bot.wrappedCells(board) ++ newBot.wrappedCells(board))
         .filter(pos => pos.x < board.task.map.maxX && pos.y < board.task.map.maxY)
     val newSolution = board.solution.addAction(MoveDown)
     board.tick.copy(bot = newBot, solution = newSolution, wrappedCells =  newWrappedCells)
@@ -42,7 +42,7 @@ case object MoveLeft extends Action {
     val bot = board.bot
     val newBot = bot.copy(position = Pos(bot.position.x-1, bot.position.y))
     val newWrappedCells = board.wrappedCells ++
-      (bot.occupiedCells() ++ newBot.occupiedCells())
+      (bot.wrappedCells(board) ++ newBot.wrappedCells(board))
         .filter(pos => pos.x < board.task.map.maxX && pos.y < board.task.map.maxY)
     val newSolution = board.solution.addAction(MoveLeft)
     board.tick.copy(bot = newBot, solution = newSolution, wrappedCells =  newWrappedCells)
@@ -56,7 +56,7 @@ case object MoveRight extends Action {
     val bot = board.bot
     val newBot = bot.copy(position = Pos(bot.position.x+1, bot.position.y))
     val newWrappedCells = board.wrappedCells ++
-      (bot.occupiedCells() ++ newBot.occupiedCells())
+      (bot.wrappedCells(board) ++ newBot.wrappedCells(board))
         .filter(pos => pos.x < board.task.map.maxX && pos.y < board.task.map.maxY)
     val newSolution = board.solution.addAction(MoveRight)
     board.tick.copy(bot = newBot, solution = newSolution, wrappedCells =  newWrappedCells)
@@ -79,7 +79,7 @@ case object TurnClockwise extends Action {
     val bot = board.bot
     val newBot = bot.copy(direction = Direction.clockwise(bot.direction))
     val newWrappedCells = board.wrappedCells ++
-      (bot.occupiedCells() ++ newBot.occupiedCells())
+      (bot.wrappedCells(board) ++ newBot.wrappedCells(board))
         .filter(pos => pos.x < board.task.map.maxX && pos.y < board.task.map.maxY)
     val newSolution = board.solution.addAction(TurnClockwise)
     board.tick.copy(bot = newBot, solution = newSolution, wrappedCells =  newWrappedCells)
@@ -93,7 +93,7 @@ case object TurnCounterClockwise extends Action {
     val bot = board.bot
     val newBot = bot.copy(direction = Direction.counterclockwise(bot.direction))
     val newWrappedCells = board.wrappedCells ++
-      (bot.occupiedCells() ++ newBot.occupiedCells())
+      (bot.wrappedCells(board) ++ newBot.wrappedCells(board))
         .filter(pos => pos.x < board.task.map.maxX && pos.y < board.task.map.maxY)
     val newSolution = board.solution.addAction(TurnCounterClockwise)
     board.tick.copy(bot = newBot, solution = newSolution, wrappedCells =  newWrappedCells)
@@ -107,7 +107,7 @@ case class AttachManipulator(pos: Pos) extends Action {
     val bot = board.bot
     val newBot = bot.copy(extraManipulators = bot.extraManipulators + bot.makeRelative(pos))
     val newWrappedCells = board.wrappedCells ++
-      (bot.occupiedCells() ++ newBot.occupiedCells())
+      (bot.wrappedCells(board) ++ newBot.wrappedCells(board))
         .filter(pos => pos.x < board.task.map.maxX && pos.y < board.task.map.maxY)
     val newSolution = board.solution.addAction(AttachManipulator(pos))
     board.tick.copy(bot = newBot, solution =  newSolution, wrappedCells =  newWrappedCells)
