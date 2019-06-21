@@ -23,6 +23,7 @@ case class Obstacle(vertices: List[Pos]) {
     val maxy = ys.max / 2
     val start = Index2D(minx, miny)
     val stop = Index2D(maxx, maxy)
+    println(s"start=$start stop=$stop")
     val size = stop - start
     // 2 times greater.
     val img = new BufferedImage(size.x * 2, size.y * 2, BufferedImage.TYPE_INT_RGB)
@@ -30,7 +31,9 @@ case class Obstacle(vertices: List[Pos]) {
     g.setColor(new Color(0))
     g.fillRect(0, 0, img.getWidth, img.getHeight)
     g.setColor(new Color(1))
-    g.fillPolygon(xs, ys, xs.size)
+    //    g.fillPolygon(xs, ys, xs.size) // <- it works too (???)
+    g.fillPolygon(xs map (v => v - minx * 2), ys map (v => v - miny * 2), xs.size)
+
     val matrix = new BitArray2D(size)
     for (ind <- matrix.indices) {
       // TODO: bulk read pixels (for speedup).
