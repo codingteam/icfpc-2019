@@ -8,7 +8,7 @@ object Solver {
     def solve(task: Task): Solution = {
       val initialBoard = Board(task, Bot(task.startPos, Direction.RIGHT, Set[Pos]()), Set[Pos](), task.obstacles, 0, 0, new Solution(List[Action]()))
 
-      def solutionLength(board: Board): Int = board.solution.length - board.wrappedCells.size
+      def solutionLength(board: Board): Int = board.wrappedCells.size - board.solution.length
 
       val open = PriorityQueue[Board](initialBoard)(Ordering.by(solutionLength))
       println("Starting with" + initialBoard.toString)
