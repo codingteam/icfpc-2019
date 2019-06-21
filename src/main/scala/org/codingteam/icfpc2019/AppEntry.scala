@@ -37,7 +37,7 @@ object AppEntry extends App {
 
       case Array("--test-awt") =>
         val obstacle = Obstacle(List(Pos(5,5), Pos(5,10), Pos(10,10), Pos(10,5)))
-        val ok = obstacle.containsPosition(Pos(3,3))
+        val ok = obstacle.containsPosition(Pos(7,7))
         val fail = obstacle.containsPosition(Pos(1,1))
         println(ok)
         println(fail)
