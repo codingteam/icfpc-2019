@@ -72,6 +72,8 @@ object AppEntry extends App {
         println("Run with --problem-file=<filepath.desc> to solve a particular problem")
 
         val Parsed.Success(task, successIndex) = parse("(0,0),(10,0),(10,10),(0,10)#(0,0)##", parseTask(_))
+//        val Parsed.Success(task, successIndex) = parse("(0,0),(6,0),(6,1),(8,1),(8,2),(6,2),(6,3),(0,3)#(0,0)##", parseTask(_))
+
         println(task)
         println(successIndex)
 

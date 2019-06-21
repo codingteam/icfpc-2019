@@ -1,14 +1,31 @@
 package org.codingteam.icfpc2019
 
-import scala.collection.mutable.PriorityQueue
+import com.thesamet.spatial.KDTree
 
+import scala.collection.mutable.PriorityQueue
 import main.scala.org.codingteam.icfpc2019.{Board, Bot, Direction}
 
 object Solver {
     def solve(task: Task): Solution = {
       val initialBoard = Board(task)
 
-      def solutionLength(board: Board): Int = board.wrappedCells.size - board.solution.length
+      def solutionLength(board: Board): Int = {
+        val allCellsCoords = for {x <- BigInt(0) until board.task.map.maxX; y <- BigInt(0) until board.task.map.maxY}
+            yield (x, y)
+        val unwrappedCells = allCellsCoords.filter((coords) => !board.wrappedCells.contains(Pos(coords._1, coords._2)))
+
+        val kdTree = KDTree.fromSeq(unwrappedCells)
+        val nearest = kdTree.findNearest((board.bot.position.x, board.bot.position.y), 1)
+        val euclideanToNearest =
+          scala.math.sqrt(
+            nearest
+            .map((coords) =>
+              scala.math.pow((coords._1 - board.bot.position.x).toDouble, 2.0) +
+                scala.math.pow((coords._2 - board.bot.position.y).toDouble, 2.0))
+            .sum)
+
+        board.wrappedCells.size - board.solution.length - euclideanToNearest.round.toInt
+      }
 
       val open = PriorityQueue[Board](initialBoard)(Ordering.by(solutionLength))
       println("Starting with" + initialBoard.toString)
@@ -19,7 +36,7 @@ object Solver {
         println("closed contains " + closed.size.toString + " boards")
 
         val bestBoard = open.dequeue()
-        println("best board is\n" + bestBoard.toString)
+        println("best board is\n" + bestBoard.toString + " with score of " + solutionLength(bestBoard))
         if (bestBoard.isWrapped()) {
           println("...and it's not wrapped yet")
           return bestBoard.solution
