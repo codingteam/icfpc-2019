@@ -26,15 +26,17 @@ object Direction extends Enumeration {
   }
 }
 
-case class Bot (position: Pos, direction : Direction) {
+case class Bot (position: Pos, direction : Direction, extraManipulators : Set[Pos]) {
   def occupiedCells() : Set[Pos] = {
     val x = position.x
     val y = position.y
-    direction match {
+
+    val base = direction match {
       case Direction.RIGHT => Set(position, Pos(x+1,y), Pos(x+1, y+1), Pos(x+1, y-1))
       case Direction.UP => Set(position, Pos(x-1,y+1), Pos(x,y+1), Pos(x+1,y+1))
       case Direction.LEFT => Set(position, Pos(x-1,y-1), Pos(x-1,y), Pos(x-1,y+1))
       case Direction.DOWN => Set(position, Pos(x-1,y-1), Pos(x,y-1), Pos(x+1, y-1))
     }
+    base ++ extraManipulators
   }
 }
