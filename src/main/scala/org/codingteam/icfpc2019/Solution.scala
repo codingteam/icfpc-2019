@@ -1,6 +1,6 @@
 package org.codingteam.icfpc2019
 
-import main.scala.org.codingteam.icfpc2019.{Board, Direction}
+import main.scala.org.codingteam.icfpc2019.{Board, Bot, Direction}
 
 import scala.collection.immutable.List
 
@@ -87,7 +87,7 @@ case class AttachManipulator(pos: Pos) extends Action {
 
   override def apply(board : Board) : Board = {
     val bot = board.bot
-    val newBot = bot.copy(extraManipulators = bot.extraManipulators + pos)
+    val newBot = bot.copy(extraManipulators = bot.extraManipulators + bot.makeRelative(pos))
     val newSolution = board.solution.addAction(AttachManipulator(pos))
     board.tick.copy(bot = newBot, solution =  newSolution)
   }
