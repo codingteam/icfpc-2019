@@ -1,12 +1,13 @@
 package main.scala.org.codingteam.icfpc2019
 
-import org.codingteam.icfpc2019.{Obstacle, Pos, Task}
+import org.codingteam.icfpc2019.{Obstacle, Pos, Solution, Task}
 
 case class Board(task : Task, bot : Bot,
                  wrappedCells : Set[Pos],
                  obstacles : List[Obstacle],
                  remainingFastWheels : Int,
-                 remainingDrill : Int
+                 remainingDrill : Int,
+                 solution: Solution
                 ) {
 
   def isValidPosition(pos : Pos) : Boolean = {

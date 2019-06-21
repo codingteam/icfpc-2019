@@ -13,7 +13,8 @@ case object MoveUp extends Action {
   override def apply(board : Board) : Board = {
     val bot = board.bot
     val newBot = bot.copy(position = Pos(bot.position.x, bot.position.y+1))
-    board.tick.copy(bot = newBot)
+    val newSolution = board.solution.addAction(MoveUp)
+    board.tick.copy(bot = newBot, solution = newSolution)
   }
 }
 
@@ -23,7 +24,8 @@ case object MoveDown extends Action {
   override def apply(board : Board) : Board = {
     val bot = board.bot
     val newBot = bot.copy(position = Pos(bot.position.x, bot.position.y+1))
-    board.tick.copy(bot = newBot)
+    val newSolution = board.solution.addAction(MoveDown)
+    board.tick.copy(bot = newBot, solution = newSolution)
   }
 }
 
@@ -33,7 +35,8 @@ case object MoveLeft extends Action {
   override def apply(board : Board) : Board = {
     val bot = board.bot
     val newBot = bot.copy(position = Pos(bot.position.x-1, bot.position.y))
-    board.tick.copy(bot = newBot)
+    val newSolution = board.solution.addAction(MoveLeft)
+    board.tick.copy(bot = newBot, solution = newSolution)
   }
 }
 
@@ -43,14 +46,18 @@ case object MoveRight extends Action {
   override def apply(board : Board) : Board = {
     val bot = board.bot
     val newBot = bot.copy(position = Pos(bot.position.x+1, bot.position.y))
-    board.tick.copy(bot = newBot)
+    val newSolution = board.solution.addAction(MoveRight)
+    board.tick.copy(bot = newBot, solution = newSolution)
   }
 }
 
 case object NoOp extends Action {
   override def toString: String = "Z"
 
-  override def apply(board : Board) : Board = board
+  override def apply(board : Board) : Board = {
+    val newSolution = board.solution.addAction(NoOp)
+    board.tick.copy(solution = newSolution)
+  }
 }
 
 case object TurnClockwise extends Action {
@@ -59,7 +66,8 @@ case object TurnClockwise extends Action {
   override def apply(board : Board) : Board = {
     val bot = board.bot
     val newBot = bot.copy(direction = Direction.clockwise(bot.direction))
-    board.tick.copy(bot = newBot)
+    val newSolution = board.solution.addAction(TurnClockwise)
+    board.tick.copy(bot = newBot, solution = newSolution)
   }
 }
 
@@ -69,7 +77,8 @@ case object TurnCounterClockwise extends Action {
   override def apply(board : Board) : Board = {
     val bot = board.bot
     val newBot = bot.copy(direction = Direction.counterclockwise(bot.direction))
-    board.tick.copy(bot = newBot)
+    val newSolution = board.solution.addAction(TurnCounterClockwise)
+    board.tick.copy(bot = newBot, solution = newSolution)
   }
 }
 
@@ -79,7 +88,8 @@ case class AttachManipulator(pos: Pos) extends Action {
   override def apply(board : Board) : Board = {
     val bot = board.bot
     val newBot = bot.copy(extraManipulators = bot.extraManipulators + pos)
-    board.tick.copy(bot = newBot)
+    val newSolution = board.solution.addAction(AttachManipulator(pos))
+    board.tick.copy(bot = newBot, solution =  newSolution)
   }
 }
 
@@ -87,7 +97,8 @@ case object AttachFastWheels extends Action {
   override def toString: String = "F"
 
   override def apply(board : Board) : Board = {
-    board.tick.copy(remainingFastWheels = 50)
+    val newSolution = board.solution.addAction(AttachFastWheels)
+    board.tick.copy(remainingFastWheels = 50, solution = newSolution)
   }
 
 }
@@ -95,10 +106,13 @@ case object StartDrill extends Action {
   override def toString: String = "L"
 
   override def apply(board : Board) : Board = {
-    board.tick.copy(remainingDrill = 30)
+    val newSolution = board.solution.addAction(StartDrill)
+    board.tick.copy(remainingDrill = 30, solution = newSolution)
   }
 }
 
-class Solution(actions : List[Action]) {
-  override def toString: String = actions.map(_.toString).mkString("")
+class Solution(reversedActions : List[Action]) {
+  override def toString: String = reversedActions.reverse.map(_.toString).mkString("")
+
+  def addAction(action: Action): Solution = return new Solution(action +: reversedActions)
 }
