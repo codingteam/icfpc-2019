@@ -21,6 +21,8 @@ object AppEntry extends App {
   def parseObstacles[_: P]: P[List[Obstacle]] = P(parseObstacle.rep(sep = ";")).map(_.toList)
 
   def parseManipulatorExtension[_: P]: P[ManipulatorExtension] = P("B" ~ parsePos).map(ManipulatorExtension(_))
+  def parseObstacle[_: P]: P[Obstacle] = P( parsePos.rep(min=2, sep=",") ).map(_.toList).map(Obstacle(_))
+  def parseObstacles[_: P]: P[List[Obstacle]] = P( parseObstacle.rep(sep=";") ).map(_.toList)
 
   def parseFastWheels[_: P]: P[FastWheels] = P("F" ~ parsePos).map(FastWheels(_))
 
