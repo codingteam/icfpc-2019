@@ -6,4 +6,5 @@ case class Pos(x: BigInt, y: BigInt) {
   def toIndex2D: Index2D = {
     Index2D(x.toInt, y.toInt)
   }
+  def isValid(): Boolean = x >= 0 && y >= 0
 }

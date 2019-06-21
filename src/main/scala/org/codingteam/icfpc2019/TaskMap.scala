@@ -1,6 +1,10 @@
 package org.codingteam.icfpc2019
 
 case class TaskMap(vertices: List[Pos]) {
+  val maxX = vertices.map(_.x).max
+
+  val maxY = vertices.map(_.y).max
+
   def isValidPosition(pos : Pos): Boolean = {
     val xs = vertices.map(_.x)
     val ys = vertices.map(_.y)
