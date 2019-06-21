@@ -35,6 +35,13 @@ object AppEntry extends App {
         println(value)
         println(successIndex)
 
+      case Array("--test-awt") =>
+        val obstacle = Obstacle(List(Pos(5,5), Pos(5,10), Pos(10,10), Pos(10,5)))
+        val ok = obstacle.containsPosition(Pos(7,7))
+        val fail = obstacle.containsPosition(Pos(3,3))
+        println(ok)
+        println(fail)
+
       case _ =>
         println("Run with --problem-file=<filepath.desc> to solve a particular problem")
 
