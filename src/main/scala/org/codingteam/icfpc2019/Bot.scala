@@ -103,10 +103,10 @@ case class Bot (position: Pos, direction : Direction, extraManipulators : Set[Po
     val y = position.y
 
     val base = direction match {
-      case Direction.RIGHT => Set(position, Pos(x+1,y), Pos(x+1, y+1), Pos(x+1, y-1))
-      case Direction.UP => Set(position, Pos(x-1,y+1), Pos(x,y+1), Pos(x+1,y+1))
-      case Direction.LEFT => Set(position, Pos(x-1,y-1), Pos(x-1,y), Pos(x-1,y+1))
-      case Direction.DOWN => Set(position, Pos(x-1,y-1), Pos(x,y-1), Pos(x+1, y-1))
+      case Direction.RIGHT => Set(position, Pos(x+1,y), Pos(x+1, y+1), Pos(x+1, y-1)).filter(pos => pos.isValid())
+      case Direction.UP => Set(position, Pos(x-1,y+1), Pos(x,y+1), Pos(x+1,y+1)).filter(pos => pos.isValid())
+      case Direction.LEFT => Set(position, Pos(x-1,y-1), Pos(x-1,y), Pos(x-1,y+1)).filter(pos => pos.isValid())
+      case Direction.DOWN => Set(position, Pos(x-1,y-1), Pos(x,y-1), Pos(x+1, y-1)).filter(pos => pos.isValid())
     }
     base ++ extraManipulators.map(m => translatePos(m))
   }
