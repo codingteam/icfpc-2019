@@ -1,6 +1,9 @@
 package org.codingteam.icfpc2019
 
-import fastparse._, NoWhitespace._
+import fastparse._
+import NoWhitespace._
+
+import scala.io.Source
 
 object AppEntry extends App {
   def digit[_: P] = P( CharIn("0-9") )
@@ -25,7 +28,12 @@ object AppEntry extends App {
   private def run(): Unit = {
     args match {
       case Array("--problem-file", filepath) =>
-        println(filepath)
+        val source = Source.fromFile(filepath)
+        val contents = try source.mkString finally source.close()
+        val Parsed.Success(value, successIndex) = parse(contents, parseTask(_))
+        // TODO[F]: Put the build results into the output
+        println(value)
+        println(successIndex)
 
       case _ =>
         println("Run with --problem-file=<filepath.desc> to solve a particular problem")
