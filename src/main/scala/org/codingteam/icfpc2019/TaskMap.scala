@@ -13,6 +13,6 @@ case class TaskMap(vertices: List[Pos]) {
     val minY = ys.min
     val maxY = ys.max
 
-    (pos.x >= minX) && (pos.x <= maxX) && (pos.y >= minY) && (pos.y <= maxY)
+    (pos.x >= minX) && (pos.x < maxX) && (pos.y >= minY) && (pos.y < maxY)
   }
 }
