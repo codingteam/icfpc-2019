@@ -21,16 +21,16 @@ object Obstacle {
     // var colorSpace : ColorSpace = ColorSpace.getInstance(ColorSpace.CS_GRAY)
     // var cm : ComponentColorModel = new ComponentColorModel(colorSpace, true, false, Transparency.OPAQUE, DataBuffer.TYPE_BYTE)
     // var wr : WritableRaster = cm.createCompatibleWritableRaster(100,100)
-    var img : BufferedImage = new BufferedImage(100, 100)
+    var img : BufferedImage = new BufferedImage(100, 100, BufferedImage.TYPE_BYTE_GRAY)
     var g : Graphics2D = img.createGraphics()
 
-    var polygon : Path2D = new Path2D.Double(vertices.length)
+    var polygon : Path2D = new Path2D.Double(Path2D.WIND_EVEN_ODD, vertices.length)
     polygon.moveTo(vertices.head.x.intValue(), vertices.head.y.intValue())
     for (vertex <- vertices.tail) {
       polygon.lineTo(vertex.x.doubleValue(), vertex.y.doubleValue())
     }
     polygon.closePath()
-    g.setColor(Color.BLACK)
+    g.setColor(Color.WHITE)
     g.fill(polygon)
 
     img
