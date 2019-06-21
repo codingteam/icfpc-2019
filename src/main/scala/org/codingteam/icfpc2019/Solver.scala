@@ -41,8 +41,9 @@ object Solver {
           StartDrill.apply(bestBoard))
 
         val boardsToCheck = neighbours
-          .filter(!closed.contains(_))
-          .filter(!open.iterator.contains(_))
+            .filter(_.isValid())
+            .filter(!closed.contains(_))
+            .filter(!open.iterator.contains(_))
 
         println("generated " + boardsToCheck.size.toString + " more boards to check")
 
