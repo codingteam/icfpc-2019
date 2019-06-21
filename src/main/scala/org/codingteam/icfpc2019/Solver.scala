@@ -32,7 +32,7 @@ object Solver {
           MoveDown.apply(bestBoard),
           MoveLeft.apply(bestBoard),
           MoveRight.apply(bestBoard),
-          NoOp.apply(bestBoard),
+//          NoOp.apply(bestBoard),
           TurnClockwise.apply(bestBoard),
           TurnCounterClockwise.apply(bestBoard),
           // TODO[M]: Generate all the positions where a manipulator can be attached, and use them to create new Boards
