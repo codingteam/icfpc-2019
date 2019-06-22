@@ -2,8 +2,6 @@ package org.codingteam.icfpc2019
 
 import main.scala.org.codingteam.icfpc2019.{Board, Direction}
 
-import scala.collection.immutable.List
-
 sealed abstract class Action {
   def apply(board : Board) : Board
 }
@@ -132,27 +130,27 @@ case object StartDrill extends Action {
   }
 }
 
-class Solution(reversedActions : List[Action]) {
-  override def toString: String = reversedActions.reverse.map(_.toString).mkString("")
+class Solution(reversedActions : Vector[Action]) {
+  override def toString: String = reversedActions.reverseIterator.map(_.toString).mkString("")
 
-  def addAction(action: Action): Solution = return new Solution(action +: reversedActions)
+  def addAction(action: Action): Solution = new Solution(action +: reversedActions)
 
   def length(): Double = {
     def actionCost(action: Action): Double = {
       action match {
         case MoveUp | MoveDown | MoveLeft | MoveRight =>
-          return 1.0
+          1.0
 
         case TurnClockwise | TurnCounterClockwise =>
-          return 0.5
+          0.5
 
         case _ =>
-          return 1.0
+          1.0
       }
     }
 
-    reversedActions.map(actionCost(_)).sum
+    reversedActions.map(actionCost).sum
   }
 
-  def totalTime = reversedActions.size
+  def totalTime: Int = reversedActions.size
 }
