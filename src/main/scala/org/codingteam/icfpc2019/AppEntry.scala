@@ -32,7 +32,7 @@ object AppEntry extends App {
 
   def parseBoosters[_: P]: P[List[Booster]] = P(parseBooster.rep(sep = ";")).map(_.toList)
 
-  def parseTask[_: P]: P[Task] = P(parseTaskMap ~ "#" ~ parsePos ~ "#" ~ parseObstacles ~ "#" ~ parseBoosters ~ End).map((data) => Task(data._1, data._2, data._3, data._4))
+  def parseTask[_: P]: P[Task] = P(parseTaskMap ~ "#" ~ parsePos ~ "#" ~ parseObstacles ~ "#" ~ parseBoosters ~ "\n".? ~ End).map((data) => Task(data._1, data._2, data._3, data._4))
 
   private def run(): Unit = {
     args match {
@@ -81,7 +81,7 @@ object AppEntry extends App {
         println(score)
 
       case _ =>
-        println("Run with --problem-file=<filepath.desc> to solve a particular problem")
+        println("Run with --problem-file <filepath.desc> to solve a particular problem")
 
         val Parsed.Success(task, successIndex) = parse("(0,0),(10,0),(10,10),(0,10)#(0,0)##", parseTask(_))
 //        val Parsed.Success(task, successIndex) = parse("(0,0),(6,0),(6,1),(8,1),(8,2),(6,2),(6,3),(0,3)#(0,0)##", parseTask(_))
