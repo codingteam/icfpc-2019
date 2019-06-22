@@ -4,18 +4,41 @@ import main.scala.org.codingteam.icfpc2019.{Board, Direction}
 
 sealed abstract class Action {
   def apply(board : Board) : Board
+
+  def tickAndReplaceBotWith(board: Board, action: Action, newBot: Bot): Board = {
+    val bot = board.bot
+    val newWrappedCells = board.wrappedCells ++
+      (bot.wrappedCells(board) ++ newBot.wrappedCells(board))
+        .filter(pos => pos.x < board.task.map.maxX && pos.y < board.task.map.maxY)
+    val newSolution = board.solution.addAction(action)
+
+    var newBoosters = board.boosters
+    var newDrills = board.remainingDrills
+    val drill = Drill(newBot.position)
+    if (newBoosters.contains(drill)) {
+      newBoosters = newBoosters - drill
+      newDrills += 1
+    }
+
+    board.tick.copy(
+      bot = newBot,
+      solution = newSolution,
+      wrappedCells = newWrappedCells,
+      boosters = newBoosters,
+      remainingDrills = newDrills)
+  }
+
+  def tickAndMoveBotBy(board: Board, action: Action, dx: Pos): Board = {
+    val bot = board.bot
+    val newBot = bot.copy(position = Pos(bot.position.x + dx.x, bot.position.y+ dx.y))
+    tickAndReplaceBotWith(board, action, newBot)
+  }
 }
 case object MoveUp extends Action {
   override def toString: String = "W"
 
   override def apply(board : Board) : Board = {
-    val bot = board.bot
-    val newBot = bot.copy(position = Pos(bot.position.x, bot.position.y+1))
-    val newWrappedCells = board.wrappedCells ++
-      (bot.wrappedCells(board) ++ newBot.wrappedCells(board))
-        .filter(pos => pos.x < board.task.map.maxX && pos.y < board.task.map.maxY)
-    val newSolution = board.solution.addAction(MoveUp)
-    board.tick.copy(bot = newBot, solution = newSolution, wrappedCells =  newWrappedCells)
+    tickAndMoveBotBy(board, MoveUp, Pos(0, 1))
   }
 }
 
@@ -23,13 +46,7 @@ case object MoveDown extends Action {
   override def toString: String = "S"
 
   override def apply(board : Board) : Board = {
-    val bot = board.bot
-    val newBot = bot.copy(position = Pos(bot.position.x, bot.position.y-1))
-    val newWrappedCells = board.wrappedCells ++
-      (bot.wrappedCells(board) ++ newBot.wrappedCells(board))
-        .filter(pos => pos.x < board.task.map.maxX && pos.y < board.task.map.maxY)
-    val newSolution = board.solution.addAction(MoveDown)
-    board.tick.copy(bot = newBot, solution = newSolution, wrappedCells =  newWrappedCells)
+    tickAndMoveBotBy(board, MoveDown, Pos(0, -1))
   }
 }
 
@@ -37,13 +54,7 @@ case object MoveLeft extends Action {
   override def toString: String = "A"
 
   override def apply(board : Board) : Board = {
-    val bot = board.bot
-    val newBot = bot.copy(position = Pos(bot.position.x-1, bot.position.y))
-    val newWrappedCells = board.wrappedCells ++
-      (bot.wrappedCells(board) ++ newBot.wrappedCells(board))
-        .filter(pos => pos.x < board.task.map.maxX && pos.y < board.task.map.maxY)
-    val newSolution = board.solution.addAction(MoveLeft)
-    board.tick.copy(bot = newBot, solution = newSolution, wrappedCells =  newWrappedCells)
+    tickAndMoveBotBy(board, MoveLeft, Pos(-1, 0))
   }
 }
 
@@ -51,13 +62,7 @@ case object MoveRight extends Action {
   override def toString: String = "D"
 
   override def apply(board : Board) : Board = {
-    val bot = board.bot
-    val newBot = bot.copy(position = Pos(bot.position.x+1, bot.position.y))
-    val newWrappedCells = board.wrappedCells ++
-      (bot.wrappedCells(board) ++ newBot.wrappedCells(board))
-        .filter(pos => pos.x < board.task.map.maxX && pos.y < board.task.map.maxY)
-    val newSolution = board.solution.addAction(MoveRight)
-    board.tick.copy(bot = newBot, solution = newSolution, wrappedCells =  newWrappedCells)
+    tickAndMoveBotBy(board, MoveRight, Pos(1, 0))
   }
 }
 
@@ -65,8 +70,7 @@ case object NoOp extends Action {
   override def toString: String = "Z"
 
   override def apply(board : Board) : Board = {
-    val newSolution = board.solution.addAction(NoOp)
-    board.tick.copy(solution = newSolution)
+    tickAndMoveBotBy(board, NoOp, Pos(0, 0))
   }
 }
 
@@ -76,11 +80,7 @@ case object TurnClockwise extends Action {
   override def apply(board : Board) : Board = {
     val bot = board.bot
     val newBot = bot.copy(direction = Direction.clockwise(bot.direction))
-    val newWrappedCells = board.wrappedCells ++
-      (bot.wrappedCells(board) ++ newBot.wrappedCells(board))
-        .filter(pos => pos.x < board.task.map.maxX && pos.y < board.task.map.maxY)
-    val newSolution = board.solution.addAction(TurnClockwise)
-    board.tick.copy(bot = newBot, solution = newSolution, wrappedCells =  newWrappedCells)
+    tickAndReplaceBotWith(board, TurnClockwise, newBot)
   }
 }
 
@@ -90,11 +90,7 @@ case object TurnCounterClockwise extends Action {
   override def apply(board : Board) : Board = {
     val bot = board.bot
     val newBot = bot.copy(direction = Direction.counterclockwise(bot.direction))
-    val newWrappedCells = board.wrappedCells ++
-      (bot.wrappedCells(board) ++ newBot.wrappedCells(board))
-        .filter(pos => pos.x < board.task.map.maxX && pos.y < board.task.map.maxY)
-    val newSolution = board.solution.addAction(TurnCounterClockwise)
-    board.tick.copy(bot = newBot, solution = newSolution, wrappedCells =  newWrappedCells)
+    tickAndReplaceBotWith(board, TurnCounterClockwise, newBot)
   }
 }
 
@@ -104,11 +100,7 @@ case class AttachManipulator(pos: Pos) extends Action {
   override def apply(board : Board) : Board = {
     val bot = board.bot
     val newBot = bot.copy(extraManipulators = bot.extraManipulators + bot.makeRelative(pos))
-    val newWrappedCells = board.wrappedCells ++
-      (bot.wrappedCells(board) ++ newBot.wrappedCells(board))
-        .filter(pos => pos.x < board.task.map.maxX && pos.y < board.task.map.maxY)
-    val newSolution = board.solution.addAction(AttachManipulator(pos))
-    board.tick.copy(bot = newBot, solution =  newSolution, wrappedCells =  newWrappedCells)
+    tickAndReplaceBotWith(board, AttachManipulator(pos), newBot)
   }
 }
 
@@ -126,7 +118,8 @@ case object StartDrill extends Action {
 
   override def apply(board : Board) : Board = {
     val newSolution = board.solution.addAction(StartDrill)
-    board.tick.copy(remainingDrill = 30, solution = newSolution)
+    val newRemainingDrills = board.remainingDrills - 1
+    board.tick.copy(remainingDrillTicks = 30, solution = newSolution, remainingDrills = newRemainingDrills)
   }
 }
 
