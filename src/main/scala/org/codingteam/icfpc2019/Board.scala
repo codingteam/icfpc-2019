@@ -108,7 +108,7 @@ case class Board(task : Task, bot : Bot,
     area
   }
 
-  def calcDistanceToUnwrapped() : Int = {
+  def calcDistanceToUnwrapped(nearest : Boolean) : Int = {
     val size = task.map.size()
     val unmarked = -1
     val matrix = Array.fill[Int](size.x.intValue(), size.y.intValue())(unmarked)
@@ -126,9 +126,11 @@ case class Board(task : Task, bot : Bot,
     }
 
     var d : Int = 0
+    var s : Int = 0
     var prevFront = bot.wrappedCells(this)
     var left = area - prevFront.size
     var isFreeCellMarked = false
+    var stop = false
     for (pos <- prevFront)
       matrix(pos.x.intValue())(pos.y.intValue()) = d
 
@@ -148,20 +150,29 @@ case class Board(task : Task, bot : Bot,
             //println(s"Mark: $neighbour")
             left -= 1
             if (! wrappedCells.contains(neighbour)) {
-              isFreeCellMarked = true
+               isFreeCellMarked = true
+               s += d
             }
           }
         }
       }
 
       prevFront = front
+      if (nearest)
+        stop = isFreeCellMarked
+      else
+        stop = false
       //println(showMatrix())
       //println(s"Left: $left")
-    } while (! isFreeCellMarked && left > 0)
-    d
+    } while (! stop && left > 0)
+    if (nearest)
+      d
+    else
+      s
   }
 
-  lazy val distanceToUnwrapped : Int = calcDistanceToUnwrapped()
+  lazy val distanceToUnwrapped : Int = calcDistanceToUnwrapped(true)
+  lazy val distanceToAllUnwrapped : Int = calcDistanceToUnwrapped(false)
 
   override def toString: String = {
     var result = new StringBuilder()

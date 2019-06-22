@@ -7,7 +7,7 @@ import main.scala.org.codingteam.icfpc2019.{Board, Bot, Direction}
 
 object Solver {
     def solutionLength(board: Board): Double = {
-      10*board.wrappedCells.size - board.solution.length - 2*board.frontLength - 5*board.distanceToUnwrapped
+      20*board.wrappedCells.size - board.solution.length - board.frontLength - board.distanceToAllUnwrapped
       //2*board.wrappedCells.size - board.solution.length() - board.frontLength - board.distanceToUnwrapped
       //board.wrappedCells.size - board.solution.length() - board.frontLength - board.distanceToUnwrapped
     }
@@ -26,7 +26,7 @@ object Solver {
 
         val bestBoard = open.dequeue()
         println("best board is\n" + bestBoard.toString + " with score of " + solutionLength(bestBoard))
-        println("  and distance " + bestBoard.distanceToUnwrapped.toString)
+        println("  and distance " + bestBoard.distanceToAllUnwrapped.toString)
         if (bestBoard.isWrapped()) {
           println("...and it's not wrapped yet")
           return bestBoard.solution
