@@ -31,12 +31,12 @@ object Solver {
     }
 
     def solutionLength(board: Board): (Double, Int, Double) = {
-      //val unwrappedCells = (board.getArea() - board.wrappedCells.size).max(1)
+      val unwrappedCells = (board.getArea() - board.wrappedCells.size).max(1)
       //10*board.wrappedCells.size - board.solution.length - board.distanceToUnwrapped
       //2*board.wrappedCells.size - board.solution.length() - board.frontLength - board.distanceToUnwrapped
       //board.wrappedCells.size - board.solution.length() - board.frontLength - board.distanceToUnwrapped
 
-      val score = board.wrappedCells.size // + board.solution.boostersCount()
+      val score = board.wrappedCells.size + (board.solution.boostersCount() * unwrappedCells * 0.1).round
       (score, -board.distanceToUnwrapped, - board.solution.length)
     }
 
@@ -81,7 +81,7 @@ object Solver {
         if (counterclockwise.wrappedCells.size > bestBoard.wrappedCells.size)
           neighbours = counterclockwise :: neighbours
 
-        if (bestBoard.hasFastWheels)
+        if (bestBoard.hasFastWheels && ! bestBoard.fastWheelsEnabled)
           neighbours = AttachFastWheels(bestBoard) :: neighbours
 
           //TurnCounterClockwise.apply(bestBoard),

@@ -24,13 +24,18 @@ case object MoveUp extends Action {
     val move : Pos => Pos = pos => Pos(pos.x, pos.y+1)
     val ticked = board.tick
     val newBoard = moveBot(ticked, move)
-    val newBoard2 =
-      if (ticked.isFastWheelsEnabled())
-        moveBot(newBoard, move)
-      else
-        newBoard
-    val newSolution = board.solution.addAction(MoveUp)
-    newBoard2.copy(solution = newSolution)
+    if (! newBoard.isValid()) {
+      newBoard
+    } else {
+      val newBoard2 =
+        if (ticked.isFastWheelsEnabled()) {
+          val b = moveBot(newBoard, move)
+          if (b.isValid()) b else newBoard
+        } else
+          newBoard
+      val newSolution = board.solution.addAction(MoveUp)
+      newBoard2.copy(solution = newSolution)
+    }
   }
 }
 
@@ -41,13 +46,18 @@ case object MoveDown extends Action {
     val move : Pos => Pos = pos => Pos(pos.x, pos.y-1)
     val ticked = board.tick
     val newBoard = moveBot(ticked, move)
-    val newBoard2 =
-      if (ticked.isFastWheelsEnabled())
-        moveBot(newBoard, move)
-      else
-        newBoard
-    val newSolution = board.solution.addAction(MoveDown)
-    newBoard2.copy(solution = newSolution)
+    if (! newBoard.isValid()) {
+      newBoard
+    } else {
+      val newBoard2 =
+        if (ticked.isFastWheelsEnabled()) {
+          val b = moveBot(newBoard, move)
+          if (b.isValid()) b else newBoard
+        } else
+          newBoard
+      val newSolution = board.solution.addAction(MoveDown)
+      newBoard2.copy(solution = newSolution)
+    }
   }
 }
 
@@ -58,13 +68,18 @@ case object MoveLeft extends Action {
     val move : Pos => Pos = pos => Pos(pos.x-1, pos.y)
     val ticked = board.tick
     val newBoard = moveBot(ticked, move)
-    val newBoard2 =
-      if (ticked.isFastWheelsEnabled())
-        moveBot(newBoard, move)
-      else
-        newBoard
-    val newSolution = board.solution.addAction(MoveLeft)
-    newBoard2.copy(solution = newSolution)
+    if (! newBoard.isValid()) {
+      newBoard
+    } else {
+      val newBoard2 =
+        if (ticked.isFastWheelsEnabled()) {
+          val b = moveBot(newBoard, move)
+          if (b.isValid()) b else newBoard
+        } else
+          newBoard
+      val newSolution = board.solution.addAction(MoveLeft)
+      newBoard2.copy(solution = newSolution)
+    }
   }
 }
 
@@ -75,13 +90,18 @@ case object MoveRight extends Action {
     val move : Pos => Pos = pos => Pos(pos.x+1, pos.y)
     val ticked = board.tick
     val newBoard = moveBot(ticked, move)
-    val newBoard2 =
-      if (ticked.isFastWheelsEnabled())
-        moveBot(newBoard, move)
-      else
-        newBoard
-    val newSolution = board.solution.addAction(MoveRight)
-    newBoard2.copy(solution = newSolution)
+    if (! newBoard.isValid()) {
+      newBoard
+    } else {
+      val newBoard2 =
+        if (ticked.isFastWheelsEnabled()) {
+          val b = moveBot(newBoard, move)
+          if (b.isValid()) b else newBoard
+        } else
+          newBoard
+      val newSolution = board.solution.addAction(MoveRight)
+      newBoard2.copy(solution = newSolution)
+    }
   }
 }
 
