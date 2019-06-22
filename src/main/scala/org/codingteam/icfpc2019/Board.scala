@@ -123,7 +123,7 @@ case class Board(task : Task, bot : Bot,
       result
     }
 
-    var d = 0
+    var d : Int = 0
     var left = area - 1
     var isFreeCellMarked = false
     var prevFront = Set(src)
@@ -157,7 +157,7 @@ case class Board(task : Task, bot : Bot,
     d
   }
 
-  lazy val distanceToUnwrapped = calcDistanceToUnwrapped(bot.position)
+  lazy val distanceToUnwrapped : Int = calcDistanceToUnwrapped(bot.position)
 
   override def toString: String = {
     var result = new StringBuilder()
