@@ -15,7 +15,7 @@ case class Board(task : Task, bot : Bot,
 
   def isValidPosition(pos : Pos) : Boolean = {
     val ind = pos.toIndex2D
-    (range contains ind) && filled(ind - range.a)
+    (range contains ind) && (filled(ind - range.a) || drilledObstacles.contains(pos))
   }
 
   def calcFrontLength() : Int = {
@@ -48,9 +48,9 @@ case class Board(task : Task, bot : Bot,
   // TODO[M]: Replace with a full-fledged check. For now, I assume there are no obstacles
   def isWrapped(detailedLogs: Boolean) : Boolean = {
     if (detailedLogs) {
-      println("there are " + area.toString() + " cells total, " + wrappedCells.size.toString() + " of which are wrapped")
+      println("there are " + getArea.toString() + " cells total, " + wrappedCells.size.toString() + " of which are wrapped")
     }
-    wrappedCells.size >= area
+    wrappedCells.size >= getArea
   }
 
   private def range = task.range
@@ -58,7 +58,7 @@ case class Board(task : Task, bot : Bot,
   private def area = task.area
 
   def getArea() : Int = {
-    area
+    area + drilledObstacles.size
   }
 
   def calcDistanceToUnwrapped(nearest : Boolean) : Int = {

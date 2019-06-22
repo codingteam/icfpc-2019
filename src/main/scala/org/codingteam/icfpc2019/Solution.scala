@@ -17,13 +17,17 @@ sealed abstract class Action {
     val drill = Drill(newBot.position)
     var drilled = board.drilledObstacles
     if (newBoosters.contains(drill)) {
+      println("Drill!")
       newBoosters = newBoosters - drill
       newDrills += 1
     }
-    if (board.obstacles.exists(o => o.containsPosition(newBot.position)))
+    val ticked = board.tick
+
+    if (ticked.remainingDrillTicks > 0 && board.obstacles.exists(o => o.containsPosition(newBot.position)))
       drilled = drilled + newBot.position
 
-    board.tick.copy(
+
+    ticked.copy(
       bot = newBot,
       solution = newSolution,
       wrappedCells = newWrappedCells,
@@ -141,12 +145,25 @@ class Solution(reversedActions : Vector[Action]) {
         case TurnClockwise | TurnCounterClockwise =>
           0.5
 
+        case StartDrill =>
+          0.1
+
         case _ =>
           1.0
       }
     }
 
     reversedActions.map(actionCost).sum
+  }
+
+  def drillsCount() : Int = {
+    def isDrill(a : Action) : Boolean = {
+      a match {
+        case StartDrill => true
+        case _ => false
+      }
+    }
+    reversedActions.filter(isDrill).size
   }
 
   def totalTime: Int = reversedActions.size
