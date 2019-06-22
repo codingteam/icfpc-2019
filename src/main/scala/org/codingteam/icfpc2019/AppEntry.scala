@@ -68,6 +68,18 @@ object AppEntry extends App {
         val s = results.map(_.map(if (_) "+" else "-").mkString("")).mkString("\n")
         println(s)
 
+      case Array("--test-check", filepath) =>
+        val source = Source.fromFile(filepath)
+        val contents = try source.mkString finally source.close()
+        val Parsed.Success(task, successIndex) = parse(contents, parseTask(_))
+        // TODO[F]: Put the build results into the output
+        val board = Board(task)
+        val newBoard = MoveUp(MoveUp(board))
+        println(newBoard)
+        println(newBoard.isValid())
+        val score = Solver.solutionLength(newBoard)
+        println(score)
+
       case _ =>
         println("Run with --problem-file=<filepath.desc> to solve a particular problem")
 
