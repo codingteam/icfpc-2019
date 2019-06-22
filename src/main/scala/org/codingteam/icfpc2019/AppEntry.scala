@@ -56,10 +56,16 @@ object AppEntry extends App {
           else fileName + "." + extension
         }
 
-        val output = replaceExtension(filepath, "sol")
-        val writer = new PrintWriter(new File(output))
-        try writer.print(solution) finally writer.close()
-        println(s"Result saved to ${output}")
+        val outputPath = replaceExtension(filepath, "sol")
+        val outputFile = new File(outputPath)
+        if (outputFile.exists() && outputFile.length() <= solution.length()) {
+          println(s"Result is ${if (outputFile.length() == solution.length()) "equal" else "WORSE"}" +
+            s" than ${outputPath}; NOT saving")
+        } else {
+          val writer = new PrintWriter(outputFile)
+          try writer.print(solution) finally writer.close()
+          println(s"Result saved to ${outputPath}")
+        }
 
       case Array("--test-awt") =>
         val obstacle = Obstacle(List(
