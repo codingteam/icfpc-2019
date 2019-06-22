@@ -13,7 +13,21 @@ sealed abstract class Action {
       (bot.wrappedCells(board) ++ newBot.wrappedCells(board))
         .filter(pos => pos.x < board.task.map.maxX && pos.y < board.task.map.maxY)
     val newSolution = board.solution.addAction(action)
-    board.tick.copy(bot = newBot, solution = newSolution, wrappedCells =  newWrappedCells)
+
+    var newBoosters = board.boosters
+    var newDrills = board.remainingDrills
+    val drill = Drill(newBot.position)
+    if (newBoosters.contains(drill)) {
+      newBoosters = newBoosters - drill
+      newDrills += 1
+    }
+
+    board.tick.copy(
+      bot = newBot,
+      solution = newSolution,
+      wrappedCells = newWrappedCells,
+      boosters = newBoosters,
+      remainingDrills = newDrills)
   }
 
   def tickAndMoveBotBy(board: Board, action: Action, dx: Pos): Board = {
@@ -106,7 +120,7 @@ case object StartDrill extends Action {
 
   override def apply(board : Board) : Board = {
     val newSolution = board.solution.addAction(StartDrill)
-    board.tick.copy(remainingDrill = 30, solution = newSolution)
+    board.tick.copy(remainingDrillTicks = 30, solution = newSolution)
   }
 }
 

@@ -9,8 +9,10 @@ import org.codingteam.icfpc2019._
 case class Board(task : Task, bot : Bot,
                  wrappedCells : Set[Pos],
                  obstacles : List[Obstacle],
+                 boosters: Set[Booster],
                  remainingFastWheels : Int,
-                 remainingDrill : Int,
+                 remainingDrills: Int,
+                 remainingDrillTicks : Int,
                  solution: Solution
                 ) {
 
@@ -25,11 +27,11 @@ case class Board(task : Task, bot : Bot,
 
   def tick() : Board = {
     val newWheels = if (remainingFastWheels >= 1) remainingFastWheels - 1 else 0
-    val newDrill = if (remainingDrill >= 1) remainingDrill - 1 else 0
-    copy(remainingFastWheels = newWheels, remainingDrill = newDrill)
+    val newDrill = if (remainingDrillTicks >= 1) remainingDrillTicks - 1 else 0
+    copy(remainingFastWheels = newWheels, remainingDrillTicks = newDrill)
   }
 
-  def isDrillEnabled() : Boolean = remainingDrill > 0
+  def isDrillEnabled() : Boolean = remainingDrillTicks > 0
 
   def isFastWheelsEnabled() : Boolean = remainingFastWheels > 0
 
@@ -119,6 +121,6 @@ case class Board(task : Task, bot : Bot,
 
 object Board {
   def apply(task : Task) : Board = {
-    Board(task, Bot(task.startPos, Direction.RIGHT, Set[Pos]()), Set[Pos](), task.obstacles, 0, 0, new Solution(List[Action]()))
+    Board(task, Bot(task.startPos, Direction.RIGHT, Set[Pos]()), Set[Pos](), task.obstacles, task.boosters.toSet, 0, 0, 0, new Solution(List[Action]()))
   }
 }
