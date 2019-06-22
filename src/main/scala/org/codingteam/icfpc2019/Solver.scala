@@ -6,20 +6,31 @@ import scala.collection.mutable.PriorityQueue
 import main.scala.org.codingteam.icfpc2019.{Board, Bot, Direction}
 
 object Solver {
+    def distance(pos1: Pos, pos2: Pos): Double = {
+      scala.math.sqrt(
+        scala.math.pow((pos1.x - pos2.x).toDouble, 2.0) +
+        scala.math.pow((pos1.y - pos2.y).toDouble, 2.0)
+      )
+    }
+
     def solutionLength(board: Board): Double = {
       val allCellsCoords = for {x <- BigInt(0) until board.task.map.maxX; y <- BigInt(0) until board.task.map.maxY if board.isValidPosition(Pos(x,y))}
           yield (x, y)
       val unwrappedCells = allCellsCoords.filter((coords) => !board.wrappedCells.contains(Pos(coords._1, coords._2)))
 
       val kdTree = KDTree.fromSeq(unwrappedCells)
-      val nearest = kdTree.findNearest((board.bot.position.x, board.bot.position.y), 1)
-      val euclideanToNearest =
-        scala.math.sqrt(
-          nearest
-            .map((coords) =>
-              scala.math.pow((coords._1 - board.bot.position.x).toDouble, 2.0) +
-                scala.math.pow((coords._2 - board.bot.position.y).toDouble, 2.0))
-            .sum)
+
+      import scala.math.Ordering.Implicits._
+
+      val euclideanToAllNearest =
+        board.bot.occupiedCells()
+          .flatMap(pos => kdTree.findNearest((pos.x, pos.y), 1)
+            .map((coords) => distance(Pos(coords._1, coords._2), pos)))
+
+      var euclideanToNearest = 0.0
+      if (euclideanToAllNearest.nonEmpty) {
+        euclideanToNearest = euclideanToAllNearest.min
+      }
 
       5*board.wrappedCells.size - euclideanToNearest - board.solution.length
     }
