@@ -1,10 +1,14 @@
 package org.codingteam.icfpc2019
 
+import java.util.concurrent.Executors
+
 import com.thesamet.spatial.KDTree
 import main.scala.org.codingteam.icfpc2019.Board
 
 import scala.collection.mutable
 import scala.collection.mutable.PriorityQueue
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 class PriorityQueueSet(queue: mutable.PriorityQueue[Board], set: mutable.Set[Board]) {
   def isEmpty: Boolean = queue.isEmpty
@@ -22,6 +26,8 @@ class PriorityQueueSet(queue: mutable.PriorityQueue[Board], set: mutable.Set[Boa
 }
 
 object Solver {
+  private implicit val executor = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(8))
+
     def distance(pos1: Pos, pos2: Pos): Double = {
       scala.math.sqrt(
         scala.math.pow((pos1.x - pos2.x).toDouble, 2.0) +
@@ -46,15 +52,21 @@ object Solver {
         euclideanToNearest = euclideanToAllNearest.min
       }
 
-      5*board.wrappedCells.size - euclideanToNearest - board.solution.length
+      1.9*board.wrappedCells.size - euclideanToNearest - board.solution.length
     }
+
+  var tasks = Map[Board, Future[Double]]()
+  def solutionLengthThreaded(board: Board): Double = {
+    val future = tasks.getOrElse(board, Future(solutionLength(board)))
+    Await.result(future, Duration.Inf)
+  }
 
     def solve(task: Task): Solution = {
       val initialBoard = Board(task)
 
 
       val open = new PriorityQueueSet(
-        PriorityQueue[Board](initialBoard)(Ordering.by(solutionLength)),
+        PriorityQueue[Board](initialBoard)(Ordering.by(solutionLengthThreaded)),
         mutable.Set[Board]()
       )
       println("Starting with\n" + initialBoard.toString)
@@ -96,6 +108,7 @@ object Solver {
 
         for (board <- boardsToCheck) {
           open.enqueue(board)
+          tasks.getOrElse(board, Future(solutionLength(board)))
         }
       }
 
