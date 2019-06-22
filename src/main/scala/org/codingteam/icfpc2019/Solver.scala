@@ -64,19 +64,28 @@ object Solver {
 
         closed = closed + bestBoard
 
-        val neighbours = List[Board](
+        var neighbours = List[Board](
           MoveUp.apply(bestBoard),
           MoveDown.apply(bestBoard),
           MoveLeft.apply(bestBoard),
-          MoveRight.apply(bestBoard),
-//          NoOp.apply(bestBoard),
-          TurnClockwise.apply(bestBoard),
-          TurnCounterClockwise.apply(bestBoard),
+          MoveRight.apply(bestBoard)
+        )
+        //          NoOp.apply(bestBoard),
+
+        val clockwise : Board = TurnClockwise.apply(bestBoard)
+        if (clockwise.wrappedCells.size > bestBoard.wrappedCells.size)
+          neighbours = clockwise :: neighbours
+
+        val counterclockwise : Board = TurnCounterClockwise.apply(bestBoard)
+        if (counterclockwise.wrappedCells.size > bestBoard.wrappedCells.size)
+          neighbours = counterclockwise :: neighbours
+
+          //TurnCounterClockwise.apply(bestBoard),
           // TODO[M]: Generate all the positions where a manipulator can be attached, and use them to create new Boards
 //          AttachManipulator.apply(bestBoard),
 //          AttachFastWheels.apply(bestBoard),
 //          StartDrill.apply(bestBoard)
-        )
+       // )
 
         val boardsToCheck = neighbours
             .filter(_.isValid())
