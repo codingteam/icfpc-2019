@@ -39,15 +39,22 @@ case class Board(task : Task, bot : Bot,
 
   override def toString: String = {
     var result : String = ""
-    for (x <- task.map.minX to task.map.maxX) {
-      for (y <- task.map.minY to task.map.maxY) {
+    for (y <- task.map.minY to task.map.maxY) {
+      for (x <- task.map.minX to task.map.maxX) {
         val pos = Pos(x,y)
-        val point = if (isValidPosition(pos))
-                      if (wrappedCells.contains(pos))
-                        "+"
-                      else
-                        " "
-                    else "#"
+        val point =
+          if (pos == bot.position)
+            "o"
+          else
+            if (bot.wrappedCells(this).contains(pos))
+              "∘"
+            else
+              if (isValidPosition(pos))
+                  if (wrappedCells.contains(pos))
+                    "+"
+                  else
+                    " "
+                else "#"
         result = result + point
       }
       result = result + "\n"
