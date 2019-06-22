@@ -100,7 +100,7 @@ object AppEntry extends App {
         println(task)
         println(successIndex)
 
-        println(Solver.solve(task, Paths.get("con"), true, None))
+        println(GASolver.solve(task, Paths.get("con"), true, None))
     }
   }
 
