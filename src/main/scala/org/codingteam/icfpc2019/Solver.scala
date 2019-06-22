@@ -20,8 +20,6 @@ object Solver {
 
       val kdTree = KDTree.fromSeq(unwrappedCells)
 
-      import scala.math.Ordering.Implicits._
-
       val euclideanToAllNearest =
         board.bot.occupiedCells()
           .flatMap(pos => kdTree.findNearest((pos.x, pos.y), 1)
@@ -32,7 +30,21 @@ object Solver {
         euclideanToNearest = euclideanToAllNearest.min
       }
 
-      5*board.wrappedCells.size - euclideanToNearest - board.solution.length
+      def immediateNeighbours(pos: Pos): Seq[Pos] = {
+        for {
+          dx <- BigInt(-1) to BigInt(1);
+          dy <- BigInt(-1) to BigInt(1)
+          if board.isValidPosition(Pos(board.bot.position.x + dx, board.bot.position.y + dy))}
+          yield Pos(board.bot.position.x + dx, board.bot.position.y + dy)
+      }
+      val hasIsolatedUnwrappedNeighbour = immediateNeighbours(board.bot.position)
+        .map(immediateNeighbours(_).filterNot(board.wrappedCells.contains(_)).size).find(_ == 0)
+      var isolatedNeighbourPenalty = 0.0
+      if (hasIsolatedUnwrappedNeighbour.isDefined) {
+        isolatedNeighbourPenalty = 11.0
+      }
+
+      5*board.wrappedCells.size - euclideanToNearest - board.solution.length - isolatedNeighbourPenalty
     }
 
     def solve(task: Task): Solution = {
