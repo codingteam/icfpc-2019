@@ -59,7 +59,7 @@ object AppEntry extends App {
         val output = replaceExtension(filepath, "sol")
         val writer = new PrintWriter(new File(output))
         try writer.print(solution) finally writer.close()
-        println(s"Result saved to ${solution}")
+        println(s"Result saved to ${output}")
 
       case Array("--test-awt") =>
         val obstacle = Obstacle(List(
