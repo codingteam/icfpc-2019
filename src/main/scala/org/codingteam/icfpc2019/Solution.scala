@@ -137,5 +137,20 @@ class Solution(reversedActions : List[Action]) {
 
   def addAction(action: Action): Solution = return new Solution(action +: reversedActions)
 
-  def length(): Int = reversedActions.length
+  def length(): Double = {
+    def actionCost(action: Action): Double = {
+      action match {
+        case MoveUp | MoveDown | MoveLeft | MoveRight =>
+          return 1.0
+
+        case TurnClockwise | TurnCounterClockwise =>
+          return 0.5
+
+        case _ =>
+          return 1.0
+      }
+    }
+
+    reversedActions.map(actionCost(_)).sum
+  }
 }
