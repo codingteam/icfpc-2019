@@ -6,11 +6,9 @@ import scala.collection.mutable.PriorityQueue
 import main.scala.org.codingteam.icfpc2019.{Board, Bot, Direction}
 
 object Solver {
-    def solutionLength(board: Board): Int = {
-      val distance = board.distanceToUnwrapped
-
-      //50*board.wrappedCells.size - board.solution.length - 5*board.calcFrontLength() - 5*distance
-      10*board.wrappedCells.size - board.solution.length - board.calcFrontLength() - distance
+    def solutionLength(board: Board): Double = {
+      50*board.wrappedCells.size - board.solution.length - 5*board.calcFrontLength() - 5*board.distanceToUnwrapped
+      //board.wrappedCells.size - board.solution.length() - board.calcFrontLength() - board.distanceToUnwrapped
     }
 
     def solve(task: Task): Solution = {
