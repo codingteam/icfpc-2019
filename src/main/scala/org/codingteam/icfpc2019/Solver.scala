@@ -46,13 +46,13 @@ object Solver {
       )
     }
 
-    def solutionLength(board: Board): (Double, Int, Double) = {
+    def solutionLength(board: Board): (Double, Int, Int, Double) = {
       //val unwrappedCells = (board.getArea() - board.wrappedCells.size).max(1)
       //10*board.wrappedCells.size - board.solution.length - board.distanceToUnwrapped
       //2*board.wrappedCells.size - board.solution.length() - board.frontLength - board.distanceToUnwrapped
       //board.wrappedCells.size - board.solution.length() - board.frontLength - board.distanceToUnwrapped
-      val score = board.wrappedCells.size - board.solution.length() * 0.1
-      (score, -board.distanceToUnwrapped, - board.solution.length)
+      val score = board.wrappedCells.size
+      (score, -board.frontLength, -board.distanceToUnwrapped, - board.solution.length)
     }
 
     def solve(task: Task, filePath: Path, detailedLogs: Boolean, maxDuration: Option[Duration]): Option[Solution] = {
