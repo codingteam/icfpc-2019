@@ -6,26 +6,27 @@ import scala.collection.mutable.PriorityQueue
 import main.scala.org.codingteam.icfpc2019.{Board, Bot, Direction}
 
 object Solver {
-    def solve(task: Task): Solution = {
-      val initialBoard = Board(task)
+    def solutionLength(board: Board): Int = {
+      val allCellsCoords = for {x <- BigInt(0) until board.task.map.maxX; y <- BigInt(0) until board.task.map.maxY if board.isValidPosition(Pos(x,y))}
+          yield (x, y)
+      val unwrappedCells = allCellsCoords.filter((coords) => !board.wrappedCells.contains(Pos(coords._1, coords._2)))
 
-      def solutionLength(board: Board): Int = {
-        val allCellsCoords = for {x <- BigInt(0) until board.task.map.maxX; y <- BigInt(0) until board.task.map.maxY}
-            yield (x, y)
-        val unwrappedCells = allCellsCoords.filter((coords) => !board.wrappedCells.contains(Pos(coords._1, coords._2)))
-
-        val kdTree = KDTree.fromSeq(unwrappedCells)
-        val nearest = kdTree.findNearest((board.bot.position.x, board.bot.position.y), 1)
-        val euclideanToNearest =
-          scala.math.sqrt(
-            nearest
+      val kdTree = KDTree.fromSeq(unwrappedCells)
+      val nearest = kdTree.findNearest((board.bot.position.x, board.bot.position.y), 1)
+      val euclideanToNearest =
+        scala.math.sqrt(
+          nearest
             .map((coords) =>
               scala.math.pow((coords._1 - board.bot.position.x).toDouble, 2.0) +
                 scala.math.pow((coords._2 - board.bot.position.y).toDouble, 2.0))
             .sum)
 
-        board.wrappedCells.size - board.solution.length - euclideanToNearest.round.toInt
-      }
+      5*board.wrappedCells.size - euclideanToNearest.round.toInt - board.solution.length
+    }
+
+    def solve(task: Task): Solution = {
+      val initialBoard = Board(task)
+
 
       val open = PriorityQueue[Board](initialBoard)(Ordering.by(solutionLength))
       println("Starting with" + initialBoard.toString)
