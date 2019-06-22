@@ -91,6 +91,8 @@ object AppEntry extends App {
         println(newBoard.isValid())
         val score = Solver.solutionLength(newBoard)
         println(score)
+        println(newBoard.getArea())
+        println(newBoard.calcDistanceToUnwrapped(false))
 
       case _ =>
         println("Run with --problem-file <filepath.desc> to solve a particular problem")

@@ -22,6 +22,7 @@ class PriorityQueueSet(queue: mutable.PriorityQueue[Board], set: mutable.Set[Boa
 }
 
 object Solver {
+
     def distance(pos1: Pos, pos2: Pos): Double = {
       scala.math.sqrt(
         scala.math.pow((pos1.x - pos2.x).toDouble, 2.0) +
@@ -29,24 +30,13 @@ object Solver {
       )
     }
 
-    def solutionLength(board: Board): Double = {
-      val allCellsCoords = for {x <- BigInt(0) until board.task.map.maxX; y <- BigInt(0) until board.task.map.maxY if board.isValidPosition(Pos(x,y))}
-          yield (x, y)
-      val unwrappedCells = allCellsCoords.filter((coords) => !board.wrappedCells.contains(Pos(coords._1, coords._2)))
-
-      val kdTree = KDTree.fromSeq(unwrappedCells)
-
-      val euclideanToAllNearest =
-        board.bot.occupiedCells()
-          .flatMap(pos => kdTree.findNearest((pos.x, pos.y), 1)
-            .map((coords) => distance(Pos(coords._1, coords._2), pos)))
-
-      var euclideanToNearest = 0.0
-      if (euclideanToAllNearest.nonEmpty) {
-        euclideanToNearest = euclideanToAllNearest.min
-      }
-
-      5*board.wrappedCells.size - euclideanToNearest - board.solution.length
+    def solutionLength(board: Board): (Double, Int, Double) = {
+      //val unwrappedCells = (board.getArea() - board.wrappedCells.size).max(1)
+      //10*board.wrappedCells.size - board.solution.length - board.distanceToUnwrapped
+      //2*board.wrappedCells.size - board.solution.length() - board.frontLength - board.distanceToUnwrapped
+      //board.wrappedCells.size - board.solution.length() - board.frontLength - board.distanceToUnwrapped
+      val score = board.wrappedCells.size
+      (score, -board.distanceToUnwrapped, - board.solution.length)
     }
 
     def solve(task: Task): Solution = {
@@ -66,6 +56,7 @@ object Solver {
 
         val bestBoard = open.dequeue()
         println("best board is\n" + bestBoard.toString + " with score of " + solutionLength(bestBoard))
+        println("  and distance " + bestBoard.distanceToUnwrapped.toString)
         if (bestBoard.isWrapped()) {
           println("...and it's not wrapped yet")
           return bestBoard.solution
@@ -73,19 +64,28 @@ object Solver {
 
         closed = closed + bestBoard
 
-        val neighbours = List[Board](
+        var neighbours = List[Board](
           MoveUp.apply(bestBoard),
           MoveDown.apply(bestBoard),
           MoveLeft.apply(bestBoard),
-          MoveRight.apply(bestBoard),
-//          NoOp.apply(bestBoard),
-          TurnClockwise.apply(bestBoard),
-          TurnCounterClockwise.apply(bestBoard),
+          MoveRight.apply(bestBoard)
+        )
+        //          NoOp.apply(bestBoard),
+
+        val clockwise : Board = TurnClockwise.apply(bestBoard)
+        if (clockwise.wrappedCells.size > bestBoard.wrappedCells.size)
+          neighbours = clockwise :: neighbours
+
+        val counterclockwise : Board = TurnCounterClockwise.apply(bestBoard)
+        if (counterclockwise.wrappedCells.size > bestBoard.wrappedCells.size)
+          neighbours = counterclockwise :: neighbours
+
+          //TurnCounterClockwise.apply(bestBoard),
           // TODO[M]: Generate all the positions where a manipulator can be attached, and use them to create new Boards
 //          AttachManipulator.apply(bestBoard),
 //          AttachFastWheels.apply(bestBoard),
 //          StartDrill.apply(bestBoard)
-        )
+       // )
 
         val boardsToCheck = neighbours
             .filter(_.isValid())
