@@ -30,6 +30,8 @@ case class Board(task : Task, bot : Bot,
     wrappedCells.filter(isFront).size
   }
 
+  lazy val frontLength : Int = calcFrontLength()
+
   def isValid() : Boolean = {
     isValidPosition(bot.position)
   }
@@ -106,7 +108,7 @@ case class Board(task : Task, bot : Bot,
     area
   }
 
-  def calcDistanceToUnwrapped(src : Pos) : Int = {
+  def calcDistanceToUnwrapped() : Int = {
     val size = task.map.size()
     val unmarked = -1
     val matrix = Array.fill[Int](size.x.intValue(), size.y.intValue())(unmarked)
@@ -124,10 +126,12 @@ case class Board(task : Task, bot : Bot,
     }
 
     var d : Int = 0
-    var left = area - 1
+    var prevFront = bot.wrappedCells(this)
+    var left = area - prevFront.size
     var isFreeCellMarked = false
-    var prevFront = Set(src)
-    matrix(src.x.intValue())(src.y.intValue()) = d
+    for (pos <- prevFront)
+      matrix(pos.x.intValue())(pos.y.intValue()) = d
+
     do {
       d += 1
       var front = Set[Pos]()
@@ -157,7 +161,7 @@ case class Board(task : Task, bot : Bot,
     d
   }
 
-  lazy val distanceToUnwrapped : Int = calcDistanceToUnwrapped(bot.position)
+  lazy val distanceToUnwrapped : Int = calcDistanceToUnwrapped()
 
   override def toString: String = {
     var result = new StringBuilder()

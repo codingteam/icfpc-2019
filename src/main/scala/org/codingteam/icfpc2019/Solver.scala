@@ -31,8 +31,9 @@ object Solver {
     }
 
     def solutionLength(board: Board): Double = {
-      50*board.wrappedCells.size - board.solution.length - 5*board.calcFrontLength() - 5*board.distanceToUnwrapped
-      //board.wrappedCells.size - board.solution.length() - board.calcFrontLength() - board.distanceToUnwrapped
+      10*board.wrappedCells.size - board.solution.length - 2*board.frontLength - 5*board.distanceToUnwrapped
+      //2*board.wrappedCells.size - board.solution.length() - board.frontLength - board.distanceToUnwrapped
+      //board.wrappedCells.size - board.solution.length() - board.frontLength - board.distanceToUnwrapped
     }
 
     def solve(task: Task): Solution = {
