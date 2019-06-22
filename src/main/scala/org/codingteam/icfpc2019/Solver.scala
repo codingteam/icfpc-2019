@@ -6,33 +6,11 @@ import scala.collection.mutable.PriorityQueue
 import main.scala.org.codingteam.icfpc2019.{Board, Bot, Direction}
 
 object Solver {
-    def distance(pos1: Pos, pos2: Pos): Double = {
-      scala.math.sqrt(
-        scala.math.pow((pos1.x - pos2.x).toDouble, 2.0) +
-        scala.math.pow((pos1.y - pos2.y).toDouble, 2.0)
-      )
-    }
+    def solutionLength(board: Board): Int = {
+      val distance = board.distanceToUnwrapped
 
-    def solutionLength(board: Board): Double = {
-      val allCellsCoords = for {x <- BigInt(0) until board.task.map.maxX; y <- BigInt(0) until board.task.map.maxY if board.isValidPosition(Pos(x,y))}
-          yield (x, y)
-      val unwrappedCells = allCellsCoords.filter((coords) => !board.wrappedCells.contains(Pos(coords._1, coords._2)))
-
-      val kdTree = KDTree.fromSeq(unwrappedCells)
-
-      import scala.math.Ordering.Implicits._
-
-      val euclideanToAllNearest =
-        board.bot.occupiedCells()
-          .flatMap(pos => kdTree.findNearest((pos.x, pos.y), 1)
-            .map((coords) => distance(Pos(coords._1, coords._2), pos)))
-
-      var euclideanToNearest = 0.0
-      if (euclideanToAllNearest.nonEmpty) {
-        euclideanToNearest = euclideanToAllNearest.min
-      }
-
-      5*board.wrappedCells.size - euclideanToNearest - board.solution.length
+      //50*board.wrappedCells.size - board.solution.length - 5*board.calcFrontLength() - 5*distance
+      10*board.wrappedCells.size - board.solution.length - board.calcFrontLength() - distance
     }
 
     def solve(task: Task): Solution = {
@@ -49,6 +27,7 @@ object Solver {
 
         val bestBoard = open.dequeue()
         println("best board is\n" + bestBoard.toString + " with score of " + solutionLength(bestBoard))
+        println("  and distance " + bestBoard.distanceToUnwrapped.toString)
         if (bestBoard.isWrapped()) {
           println("...and it's not wrapped yet")
           return bestBoard.solution

@@ -19,6 +19,17 @@ case class Board(task : Task, bot : Bot,
     (range contains ind) && filled(ind - range.a)
   }
 
+  def calcFrontLength() : Int = {
+    def isFront(pos : Pos) : Boolean = {
+      val x = pos.x
+      val y = pos.y
+      val neighbours = for {dx <- -1 to 1; dy <- -1 to 1}
+        yield Pos(x+dx, y+dy)
+      neighbours.exists(p => isValidPosition(p) && ! wrappedCells.contains(p))
+    }
+    wrappedCells.filter(isFront).size
+  }
+
   def isValid() : Boolean = {
     isValidPosition(bot.position)
   }
@@ -35,14 +46,11 @@ case class Board(task : Task, bot : Bot,
 
   // TODO[M]: Replace with a full-fledged check. For now, I assume there are no obstacles
   def isWrapped() : Boolean = {
-    val boardArea = Obstacle(task.map.vertices).getArea
-    val obstaclesArea = task.obstacles.map(_.getArea).sum
-    val cellsCount = boardArea - obstaclesArea
-    println("there are " + cellsCount.toString() + " cells total, " + wrappedCells.size.toString() + " of which are wrapped")
-    wrappedCells.size >= cellsCount
+    println("there are " + area.toString() + " cells total, " + wrappedCells.size.toString() + " of which are wrapped")
+    wrappedCells.size >= area
   }
 
-  private lazy val (range, filled) = {
+  private lazy val (range, filled, area) = {
     def checkedInt32(v: BigInt) = {
       require(v >= Int.MinValue && v <= Int.MaxValue, s"$v is too big for int")
       v.toInt
@@ -83,13 +91,73 @@ case class Board(task : Task, bot : Bot,
     }
 
     val matrix = new BitArray2D(boardSize)
+    var area = 0
     for (ind <- matrix.indices) {
       // TODO: bulk read pixels (for speedup).
       val isFilled = img.getRGB(ind.x * 2 + 1, ind.y * 2 + 1) != Color.BLACK.getRGB()
       matrix(ind) = isFilled
+      if (isFilled)
+        area += 1
     }
-    (Index2DRange(boardStart, boardStart + boardSize), matrix)
+    (Index2DRange(boardStart, boardStart + boardSize), matrix, area)
   }
+
+  def getArea() : Int = {
+    area
+  }
+
+  def calcDistanceToUnwrapped(src : Pos) : Int = {
+    val size = task.map.size()
+    val unmarked = -1
+    val matrix = Array.fill[Int](size.x.intValue(), size.y.intValue())(unmarked)
+
+    def showMatrix() : String = {
+      var result = ""
+      for (y <- 0 until size.y.intValue()) {
+        for (x <- 0 until size.x.intValue()) {
+          val d = matrix(x)(y)
+          result = result + d.toString + " "
+        }
+        result = result + "\n"
+      }
+      result
+    }
+
+    var d = 0
+    var left = area - 1
+    var isFreeCellMarked = false
+    var prevFront = Set(src)
+    matrix(src.x.intValue())(src.y.intValue()) = d
+    do {
+      d += 1
+      var front = Set[Pos]()
+      for (cell <- prevFront) {
+        val x = cell.x
+        val y = cell.y
+        val neighbours = List(Pos(x-1,y), Pos(x,y+1), Pos(x+1,y), Pos(x,y-1))
+        for (neighbour <- neighbours) {
+          val nx = neighbour.x
+          val ny = neighbour.y
+          if (isValidPosition(neighbour) && matrix(nx.intValue())(ny.intValue()) == unmarked) {
+            matrix(nx.intValue())(ny.intValue()) = d
+            front = front + neighbour
+            //println(s"Mark: $neighbour")
+            left -= 1
+            if (! wrappedCells.contains(neighbour)) {
+              isFreeCellMarked = true
+            }
+          }
+        }
+      }
+
+      prevFront = front
+      //println(showMatrix())
+      //println(s"Left: $left")
+    } while (! isFreeCellMarked && left > 0)
+    d
+  }
+
+  lazy val distanceToUnwrapped = calcDistanceToUnwrapped(bot.position)
 
   override def toString: String = {
     var result = new StringBuilder()
