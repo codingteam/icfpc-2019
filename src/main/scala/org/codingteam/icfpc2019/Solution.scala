@@ -120,7 +120,8 @@ case object StartDrill extends Action {
 
   override def apply(board : Board) : Board = {
     val newSolution = board.solution.addAction(StartDrill)
-    board.tick.copy(remainingDrillTicks = 30, solution = newSolution)
+    val newRemainingDrills = board.remainingDrills - 1
+    board.tick.copy(remainingDrillTicks = 30, solution = newSolution, remainingDrills = newRemainingDrills)
   }
 }
 

@@ -22,7 +22,13 @@ case class Board(task : Task, bot : Bot,
   }
 
   def isValid() : Boolean = {
-    isValidPosition(bot.position)
+    if (remainingDrillTicks > 0) {
+      // The drill is active, so the bot is allowed to move anywhere inside the map
+      val limits = task.map.size()
+      bot.position.x < limits.x && bot.position.y < limits.y
+    } else {
+      isValidPosition(bot.position)
+    }
   }
 
   def tick() : Board = {
