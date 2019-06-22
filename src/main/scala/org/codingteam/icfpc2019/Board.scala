@@ -102,7 +102,7 @@ case class Board(task : Task, bot : Bot,
       for (y <- 0 until size.y.intValue()) {
         for (x <- 0 until size.x.intValue()) {
           val d = matrix(x)(y)
-          result = result + d.toString + " "
+          result = result + f"$d%2d" + " "
         }
         result = result + "\n"
       }
