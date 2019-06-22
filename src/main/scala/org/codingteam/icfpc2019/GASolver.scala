@@ -56,26 +56,30 @@ object GASolver {
       if (!solutions.contains(randomBoard)) {
         solutions.enqueue(randomBoard)
       }
-      println("Generated " + solutions.size + " random boards")
-    }
-
-    while (iterationCount < 1000) {
-      iterationCount += 1
-      if (maxDuration.isDefined && System.nanoTime() - startedAt > maxDuration.get.toNanos) {
-        println(s"$fileName: failed due to timeout")
-        return None
-      }
-
       if (detailedLogs) {
-      }
-
-      if (initialBoard.isWrapped(detailedLogs)) {
-        if (detailedLogs) {
-          println("...and it's not wrapped yet")
-        }
-        return Some(initialBoard.solution)
+        println("Generated " + solutions.size + " random boards")
       }
     }
+
+//    while (iterationCount < 1000) {
+//      iterationCount += 1
+//      if (maxDuration.isDefined && System.nanoTime() - startedAt > maxDuration.get.toNanos) {
+//        println(s"$fileName: failed due to timeout")
+//        return None
+//      }
+//
+//      if (detailedLogs) {
+//      }
+//
+//      if (initialBoard.isWrapped(detailedLogs)) {
+//        if (detailedLogs) {
+//          println("...and it's not wrapped yet")
+//        }
+//        return Some(initialBoard.solution)
+//      }
+//    }
+
+    return Some(solutions.dequeue().solution)
 
     println(s"$fileName: cannot find any solution")
     None

@@ -118,7 +118,7 @@ object AppEntry extends App {
       // println(successIndex)
     }
 
-    val someSolution = Solver.solve(task, taskFilePath, detailedLogs, maxDuration)
+    val someSolution = GASolver.solve(task, taskFilePath, detailedLogs, maxDuration)
     if (detailedLogs) {
       println(someSolution)
     }
