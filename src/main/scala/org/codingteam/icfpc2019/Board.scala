@@ -9,6 +9,7 @@ case class Board(task : Task, bot : Bot,
                  remainingFastWheels : Int,
                  remainingDrills: Int,
                  remainingDrillTicks : Int,
+                 drilledObstacles : Set[Pos],
                  solution: Solution
                 ) {
 
@@ -31,13 +32,7 @@ case class Board(task : Task, bot : Bot,
   lazy val frontLength : Int = calcFrontLength()
 
   def isValid() : Boolean = {
-    if (remainingDrillTicks > 0) {
-      // The drill is active, so the bot is allowed to move anywhere inside the map
-      val limits = task.map.size()
-      bot.position.x < limits.x && bot.position.y < limits.y
-    } else {
-      isValidPosition(bot.position)
-    }
+    isValidPosition(bot.position)
   }
 
   def tick() : Board = {
@@ -163,6 +158,6 @@ case class Board(task : Task, bot : Bot,
 
 object Board {
   def apply(task : Task) : Board = {
-    Board(task, Bot(task.startPos, Direction.RIGHT, Set[Pos]()), Set[Pos](), task.obstacles, task.boosters.toSet, 0, 0, 0, new Solution(List[Action]()))
+    Board(task, Bot(task.startPos, Direction.RIGHT, Set[Pos]()), Set[Pos](), task.obstacles, task.boosters.toSet, 0, 0, 0, Set[Pos](), new Solution(Vector[Action]()))
   }
 }

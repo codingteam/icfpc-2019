@@ -1,6 +1,6 @@
 package org.codingteam.icfpc2019
 
-import main.scala.org.codingteam.icfpc2019.{Board, Direction}
+import main.scala.org.codingteam.icfpc2019.{Board, Bot, Direction}
 
 sealed abstract class Action {
   def apply(board : Board) : Board
@@ -15,16 +15,20 @@ sealed abstract class Action {
     var newBoosters = board.boosters
     var newDrills = board.remainingDrills
     val drill = Drill(newBot.position)
+    var drilled = board.drilledObstacles
     if (newBoosters.contains(drill)) {
       newBoosters = newBoosters - drill
       newDrills += 1
     }
+    if (board.obstacles.exists(o => o.containsPosition(newBot.position)))
+      drilled = drilled + newBot.position
 
     board.tick.copy(
       bot = newBot,
       solution = newSolution,
       wrappedCells = newWrappedCells,
       boosters = newBoosters,
+      drilledObstacles = drilled,
       remainingDrills = newDrills)
   }
 
