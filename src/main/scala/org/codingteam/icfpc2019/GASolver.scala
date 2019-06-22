@@ -10,6 +10,26 @@ import scala.collection.mutable.PriorityQueue
 import scala.concurrent.duration.Duration
 
 object GASolver {
+  private def randomWalker(task: Task, detailedLogs: Boolean): Board = {
+    var result = Board(task)
+
+    while (!result.isWrapped(detailedLogs)) {
+      val neighbours = Seq[Action](
+        MoveUp,
+        MoveDown,
+        MoveLeft,
+        MoveRight,
+        TurnClockwise,
+        TurnCounterClockwise
+      ).map(_.apply(result))
+        .filter(_.isValid())
+
+      result = util.Random.shuffle(neighbours.toSeq).head
+    }
+
+    result
+  }
+
   def solve(task: Task, filePath: Path, detailedLogs: Boolean, maxDuration: Option[Duration]): Option[Solution] = {
     val fileName = filePath.getFileName
     val initialBoard = Board(task)
@@ -23,6 +43,21 @@ object GASolver {
 
     var iterationCount = 0
     val startedAt = System.nanoTime()
+
+    val solutionsSetSize = 100
+    val solutions = new PriorityQueueSet(
+      PriorityQueue[Board](initialBoard)(Ordering.by(board => -board.solution.totalTime)),
+      mutable.Set[Board]()
+    )
+
+    while (solutions.size < solutionsSetSize) {
+      val randomBoard = randomWalker(task, detailedLogs)
+      println(randomBoard.toString)
+      if (!solutions.contains(randomBoard)) {
+        solutions.enqueue(randomBoard)
+      }
+      println("Generated " + solutions.size + " random boards")
+    }
 
     while (iterationCount < 1000) {
       iterationCount += 1
