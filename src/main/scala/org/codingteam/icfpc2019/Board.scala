@@ -4,7 +4,7 @@ import java.awt.Color
 import java.awt.image.BufferedImage
 
 import org.codingteam.icfpc2019.spatialutils.{BitArray2D, Index2D, Index2DRange}
-import org.codingteam.icfpc2019.{Action, Obstacle, Pos, Solution, Task}
+import org.codingteam.icfpc2019._
 
 case class Board(task : Task, bot : Bot,
                  wrappedCells : Set[Pos],
@@ -92,7 +92,7 @@ case class Board(task : Task, bot : Bot,
   }
 
   override def toString: String = {
-    var result : String = ""
+    var result = new StringBuilder()
     for (y <- task.map.minY to task.map.maxY) {
       for (x <- task.map.minX to task.map.maxX) {
         val pos = Pos(x,y)
@@ -109,9 +109,9 @@ case class Board(task : Task, bot : Bot,
                   else
                     " "
                 else "#"
-        result = result + point
+        result.append(point)
       }
-      result = result + "\n"
+      result.append("\n")
     }
     result + "\n" + solution.toString
   }
