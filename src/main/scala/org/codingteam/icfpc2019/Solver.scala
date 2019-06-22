@@ -1,10 +1,12 @@
 package org.codingteam.icfpc2019
 
-import com.thesamet.spatial.KDTree
+import java.nio.file.Path
+
 import main.scala.org.codingteam.icfpc2019.Board
 
 import scala.collection.mutable
 import scala.collection.mutable.PriorityQueue
+import scala.concurrent.duration.Duration
 
 class PriorityQueueSet(queue: mutable.PriorityQueue[Board], set: mutable.Set[Board]) {
   def isEmpty: Boolean = queue.isEmpty
@@ -39,7 +41,8 @@ object Solver {
       (score, -board.distanceToUnwrapped, - board.solution.length)
     }
 
-    def solve(task: Task): Solution = {
+    def solve(task: Task, filePath: Path, detailedLogs: Boolean, maxDuration: Option[Duration]): Option[Solution] = {
+      val fileName = filePath.getFileName
       val initialBoard = Board(task)
 
 
@@ -47,19 +50,40 @@ object Solver {
         PriorityQueue[Board](initialBoard)(Ordering.by(solutionLength)),
         mutable.Set[Board]()
       )
-      println("Starting with\n" + initialBoard.toString)
+      if (detailedLogs) {
+        println("Starting with\n" + initialBoard.toString)
+      } else {
+        println(s"Starting on $fileName")
+      }
       var closed = Set[Board]()
 
+      var iterationCount = 0
+      val startedAt = System.nanoTime()
+
       while (!open.isEmpty) {
-        println("open   contains " + open.size.toString + " boards")
-        println("closed contains " + closed.size.toString + " boards")
+        iterationCount += 1
+        if (maxDuration.isDefined && System.nanoTime() - startedAt > maxDuration.get.toNanos) {
+          println(s"$fileName: failed due to timeout")
+          return None
+        }
+
+        if (detailedLogs) {
+          println("open   contains " + open.size.toString + " boards")
+          println("closed contains " + closed.size.toString + " boards")
+        }
 
         val bestBoard = open.dequeue()
-        println("best board is\n" + bestBoard.toString + " with score of " + solutionLength(bestBoard))
-        println("  and distance " + bestBoard.distanceToUnwrapped.toString)
-        if (bestBoard.isWrapped()) {
-          println("...and it's not wrapped yet")
-          return bestBoard.solution
+        if (detailedLogs) {
+          println("best board is\n" + bestBoard.toString + " with score of " + solutionLength(bestBoard))
+          println("  and distance " + bestBoard.distanceToUnwrapped.toString)
+        } else if (iterationCount % 1000 == 0) {
+          println(s"$fileName heuristics: ${solutionLength(bestBoard)}")
+        }
+        if (bestBoard.isWrapped(detailedLogs)) {
+          if (detailedLogs) {
+            println("...and it's not wrapped yet")
+          }
+          return Some(bestBoard.solution)
         }
 
         closed = closed + bestBoard
@@ -92,13 +116,16 @@ object Solver {
             .filter(!closed.contains(_))
             .filter(!open.contains(_))
 
-        println("generated " + boardsToCheck.size.toString + " more boards to check")
+        if (detailedLogs) {
+          println("generated " + boardsToCheck.size.toString + " more boards to check")
+        }
 
         for (board <- boardsToCheck) {
           open.enqueue(board)
         }
       }
 
-      new Solution(List[Action]())
+      println(s"$fileName: cannot find any solution")
+      None
     }
   }

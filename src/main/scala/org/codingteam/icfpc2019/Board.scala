@@ -43,8 +43,10 @@ case class Board(task : Task, bot : Bot,
   def isFastWheelsEnabled() : Boolean = remainingFastWheels > 0
 
   // TODO[M]: Replace with a full-fledged check. For now, I assume there are no obstacles
-  def isWrapped() : Boolean = {
-    println("there are " + area.toString() + " cells total, " + wrappedCells.size.toString() + " of which are wrapped")
+  def isWrapped(detailedLogs: Boolean) : Boolean = {
+    if (detailedLogs) {
+      println("there are " + area.toString() + " cells total, " + wrappedCells.size.toString() + " of which are wrapped")
+    }
     wrappedCells.size >= area
   }
 

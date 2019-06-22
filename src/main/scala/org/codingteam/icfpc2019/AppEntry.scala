@@ -1,14 +1,21 @@
 package org.codingteam.icfpc2019
 
 import java.io.{File, PrintWriter}
+import java.nio.file.{Files, Path, Paths}
+import java.util.concurrent.{Executors, TimeUnit}
 
 import fastparse.NoWhitespace._
 import fastparse._
 import main.scala.org.codingteam.icfpc2019.Board
 
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.io.Source
 
 object AppEntry extends App {
+  private val DEFAULT_MINUTES = 10
+  private lazy val DEFAULT_CORES = Runtime.getRuntime.availableProcessors()
+
   def digit[_: P] = P(CharIn("0-9"))
 
   def nonzeroDigit[_: P]: P[Unit] = P(CharIn("1-9"))
@@ -38,34 +45,12 @@ object AppEntry extends App {
   private def run(): Unit = {
     args match {
       case Array("--problem-file", filepath) =>
-        val source = Source.fromFile(filepath)
-        val contents = try source.mkString finally source.close()
-        val Parsed.Success(task, successIndex) = parse(contents, parseTask(_))
+        solveTask(Paths.get(filepath))
 
-        val board = Board(task)
-        println(task)
-        println(board)
-        // println(successIndex)
-
-        val solution = Solver.solve(task)
-        println(solution)
-
-        def replaceExtension(fileName: String, extension: String): String = {
-          val point = fileName.lastIndexOf('.')
-          if (point >= 0) fileName.take(point) + "." + extension
-          else fileName + "." + extension
-        }
-
-        val outputPath = replaceExtension(filepath, "sol")
-        val outputFile = new File(outputPath)
-        if (outputFile.exists() && outputFile.length() <= solution.length()) {
-          println(s"Result is ${if (outputFile.length() == solution.length()) "equal" else "WORSE"}" +
-            s" than ${outputPath}; NOT saving")
-        } else {
-          val writer = new PrintWriter(outputFile)
-          try writer.print(solution) finally writer.close()
-          println(s"Result saved to ${outputPath}")
-        }
+      case Array("--directory", directory) => solveDirectory(directory)
+      case Array("--directory", directory, "--minutes", minutes) => solveDirectory(directory, minutes)
+      case Array("--directory", directory, "--cores", cores) => solveDirectory(directory, _, cores)
+      case Array("--directory", directory, "--minutes", minutes, "--cores", cores) => solveDirectory(directory, minutes, cores)
 
       case Array("--test-awt") =>
         val obstacle = Obstacle(List(
@@ -101,7 +86,13 @@ object AppEntry extends App {
         println(newBoard.calcDistanceToUnwrapped(false))
 
       case _ =>
-        println("Run with --problem-file <filepath.desc> to solve a particular problem")
+        println(
+          """Usage:
+            |  --problem-file <filepath.desc>
+            |    to solve a particular problem
+            |  --directory <path> [--minutes <num>] [--cores <num>]
+            |    to solve all problems in a directory (recursive)
+            |""".stripMargin.format())
 
         val Parsed.Success(task, successIndex) = parse("(0,0),(10,0),(10,10),(0,10)#(0,0)##", parseTask(_))
 //        val Parsed.Success(task, successIndex) = parse("(0,0),(6,0),(6,1),(8,1),(8,2),(6,2),(6,3),(0,3)#(0,0)##", parseTask(_))
@@ -109,9 +100,67 @@ object AppEntry extends App {
         println(task)
         println(successIndex)
 
-        println(Solver.solve(task))
+        println(Solver.solve(task, Paths.get("con"), true, None))
     }
   }
 
   run()
+
+  private def solveTask(taskFilePath: Path, detailedLogs: Boolean = true, maxDuration: Option[Duration] = None): Unit = {
+    val source = Source.fromFile(taskFilePath.toFile)
+    val contents = try source.mkString finally source.close()
+    val Parsed.Success(task, successIndex) = parse(contents, parseTask(_))
+
+    val board = Board(task)
+    if (detailedLogs) {
+      println(task)
+      println(board)
+      // println(successIndex)
+    }
+
+    val someSolution = Solver.solve(task, taskFilePath, detailedLogs, maxDuration)
+    if (detailedLogs) {
+      println(someSolution)
+    }
+    if (someSolution.isEmpty) {
+      println(s"Task could not be solved: $taskFilePath")
+      return
+    }
+
+    val Some(solution) = someSolution
+
+    def replaceExtension(fileName: String, extension: String): String = {
+      val point = fileName.lastIndexOf('.')
+      if (point >= 0) fileName.take(point) + "." + extension
+      else fileName + "." + extension
+    }
+
+    val outputPath = replaceExtension(taskFilePath.toString, "sol")
+    val outputFile = new File(outputPath)
+    if (outputFile.exists() && outputFile.length() <= solution.length()) {
+      println(s"Result is ${if (outputFile.length() == solution.length()) "equal" else "WORSE"}" +
+        s" than ${outputPath}; NOT saving")
+    } else {
+      val writer = new PrintWriter(outputFile)
+      try writer.print(solution) finally writer.close()
+      println(s"Result saved to ${outputPath}")
+    }
+  }
+
+  private def solveDirectory(pathString: String, minutesString: String = null, coresString: String = null): Unit = {
+    import scala.collection.JavaConverters._
+
+    val path = Paths.get(pathString)
+    val minutes = if (minutesString == null) DEFAULT_MINUTES else minutesString.toInt
+    val duration = Duration(minutes, TimeUnit.MINUTES)
+    val cores = if (coresString == null) DEFAULT_CORES else coresString.toInt
+    implicit val executor = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(cores))
+
+    val futures = Files.walk(path).iterator().asScala.filter(_.toString.endsWith(".desc")).map { file =>
+      Future(solveTask(file, false, Some(duration)))
+    }.toVector
+
+    println(s"Awaiting for ${futures.size} tasks")
+    Await.result(Future.sequence(futures), Duration.Inf)
+  }
 }
