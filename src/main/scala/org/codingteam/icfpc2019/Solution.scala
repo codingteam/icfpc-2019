@@ -1,6 +1,6 @@
 package org.codingteam.icfpc2019
 
-import main.scala.org.codingteam.icfpc2019.{Board, Bot, Direction}
+import main.scala.org.codingteam.icfpc2019.{Board, Direction}
 
 import scala.collection.immutable.List
 
@@ -153,4 +153,6 @@ class Solution(reversedActions : List[Action]) {
 
     reversedActions.map(actionCost(_)).sum
   }
+
+  def totalTime = reversedActions.size
 }

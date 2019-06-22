@@ -123,7 +123,7 @@ object AppEntry extends App {
       println(someSolution)
     }
     if (someSolution.isEmpty) {
-      println(s"Task could not be solved: $taskFilePath")
+      println(s"Task could not be solved: ${taskFilePath.getFileName}")
       return
     }
 
@@ -137,8 +137,10 @@ object AppEntry extends App {
 
     val outputPath = replaceExtension(taskFilePath.toString, "sol")
     val outputFile = new File(outputPath)
-    if (outputFile.exists() && outputFile.length() <= solution.length()) {
-      println(s"Result is ${if (outputFile.length() == solution.length()) "equal" else "WORSE"}" +
+
+    // TODO[F]: both length() and totalTime are approximations not taking cloning into account
+    if (outputFile.exists() && outputFile.length() <= solution.totalTime) {
+      println(s"Result is ${if (outputFile.length() == solution.totalTime) "equal" else "WORSE"}" +
         s" than ${outputPath}; NOT saving")
     } else {
       val writer = new PrintWriter(outputFile)
