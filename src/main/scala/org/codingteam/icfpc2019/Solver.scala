@@ -1,9 +1,25 @@
 package org.codingteam.icfpc2019
 
 import com.thesamet.spatial.KDTree
+import main.scala.org.codingteam.icfpc2019.Board
 
+import scala.collection.mutable
 import scala.collection.mutable.PriorityQueue
-import main.scala.org.codingteam.icfpc2019.{Board, Bot, Direction}
+
+class PriorityQueueSet(queue: mutable.PriorityQueue[Board], set: mutable.Set[Board]) {
+  def isEmpty: Boolean = queue.isEmpty
+  def size: Int = queue.size
+  def contains(board: Board): Boolean = set.contains(board)
+  def enqueue(board: Board): Unit = {
+    queue.enqueue(board)
+    set.add(board)
+  }
+  def dequeue(): Board = {
+    val board = queue.dequeue()
+    set.remove(board)
+    board
+  }
+}
 
 object Solver {
     def distance(pos1: Pos, pos2: Pos): Double = {
@@ -19,8 +35,6 @@ object Solver {
       val unwrappedCells = allCellsCoords.filter((coords) => !board.wrappedCells.contains(Pos(coords._1, coords._2)))
 
       val kdTree = KDTree.fromSeq(unwrappedCells)
-
-      import scala.math.Ordering.Implicits._
 
       val euclideanToAllNearest =
         board.bot.occupiedCells()
@@ -39,11 +53,14 @@ object Solver {
       val initialBoard = Board(task)
 
 
-      val open = PriorityQueue[Board](initialBoard)(Ordering.by(solutionLength))
+      val open = new PriorityQueueSet(
+        PriorityQueue[Board](initialBoard)(Ordering.by(solutionLength)),
+        mutable.Set[Board]()
+      )
       println("Starting with\n" + initialBoard.toString)
       var closed = Set[Board]()
 
-      while (open.nonEmpty) {
+      while (!open.isEmpty) {
         println("open   contains " + open.size.toString + " boards")
         println("closed contains " + closed.size.toString + " boards")
 
@@ -73,7 +90,7 @@ object Solver {
         val boardsToCheck = neighbours
             .filter(_.isValid())
             .filter(!closed.contains(_))
-            .filter(!open.iterator.contains(_))
+            .filter(!open.contains(_))
 
         println("generated " + boardsToCheck.size.toString + " more boards to check")
 
