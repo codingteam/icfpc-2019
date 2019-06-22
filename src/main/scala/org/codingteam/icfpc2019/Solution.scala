@@ -141,9 +141,7 @@ case object AttachFastWheels extends Action {
 
   override def apply(board : Board) : Board = {
     val newSolution = board.solution.addAction(AttachFastWheels)
-    val newFastWheels = if (board.isFastWheelsEnabled())
-                          board.remainingFastWheels + 50
-                        else 50
+    val newFastWheels = 50
     println("Attach!")
     board.tick.copy(fastWheelsEnabled = true, remainingFastWheels = newFastWheels, solution = newSolution)
   }
@@ -181,5 +179,16 @@ class Solution(reversedActions : List[Action]) {
     }
 
     reversedActions.map(actionCost(_)).sum
+  }
+
+  def isBooster(a : Action) : Boolean = {
+    a match {
+      case AttachFastWheels => true
+      case _ => false
+    }
+  }
+
+  def boostersCount() : Int = {
+    reversedActions.filter(isBooster).size
   }
 }

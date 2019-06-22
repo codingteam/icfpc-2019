@@ -58,7 +58,7 @@ case class Board(task : Task, bot : Bot,
   def isFastWheelsEnabled() : Boolean = fastWheelsEnabled && remainingFastWheels > 0
 
   def currentBooster() : Option[Booster] = {
-    boosters.filter(b => bot.wrappedCells(this).contains(b.pos)) match {
+    boosters.filter(b => bot.position == b.pos) match {
       case Nil => None
       case booster :: _ => Some(booster)
     }
