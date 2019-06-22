@@ -1,8 +1,9 @@
 package org.codingteam.icfpc2019
 
+import java.io.{File, PrintWriter}
+
 import fastparse.NoWhitespace._
 import fastparse._
-import NoWhitespace._
 import main.scala.org.codingteam.icfpc2019.Board
 
 import scala.io.Source
@@ -32,7 +33,7 @@ object AppEntry extends App {
 
   def parseBoosters[_: P]: P[List[Booster]] = P(parseBooster.rep(sep = ";")).map(_.toList)
 
-  def parseTask[_: P]: P[Task] = P(parseTaskMap ~ "#" ~ parsePos ~ "#" ~ parseObstacles ~ "#" ~ parseBoosters ~ End).map((data) => Task(data._1, data._2, data._3, data._4))
+  def parseTask[_: P]: P[Task] = P(parseTaskMap ~ "#" ~ parsePos ~ "#" ~ parseObstacles ~ "#" ~ parseBoosters ~ "\n".? ~ End).map((data) => Task(data._1, data._2, data._3, data._4))
 
   private def run(): Unit = {
     args match {
@@ -40,7 +41,7 @@ object AppEntry extends App {
         val source = Source.fromFile(filepath)
         val contents = try source.mkString finally source.close()
         val Parsed.Success(task, successIndex) = parse(contents, parseTask(_))
-        // TODO[F]: Put the build results into the output
+
         val board = Board(task)
         println(task)
         println(board)
@@ -48,6 +49,17 @@ object AppEntry extends App {
 
         val solution = Solver.solve(task)
         println(solution)
+
+        def replaceExtension(fileName: String, extension: String): String = {
+          val point = fileName.lastIndexOf('.')
+          if (point >= 0) fileName.take(point) + "." + extension
+          else fileName + "." + extension
+        }
+
+        val output = replaceExtension(filepath, "sol")
+        val writer = new PrintWriter(new File(output))
+        try writer.print(solution) finally writer.close()
+        println(s"Result saved to ${solution}")
 
       case Array("--test-awt") =>
         val obstacle = Obstacle(List(
@@ -68,10 +80,24 @@ object AppEntry extends App {
         val s = results.map(_.map(if (_) "+" else "-").mkString("")).mkString("\n")
         println(s)
 
+      case Array("--test-check", filepath) =>
+        val source = Source.fromFile(filepath)
+        val contents = try source.mkString finally source.close()
+        val Parsed.Success(task, successIndex) = parse(contents, parseTask(_))
+        // TODO[F]: Put the build results into the output
+        val board = Board(task)
+        val newBoard = MoveUp(MoveUp(board))
+        println(newBoard)
+        println(newBoard.isValid())
+        val score = Solver.solutionLength(newBoard)
+        println(score)
+
       case _ =>
-        println("Run with --problem-file=<filepath.desc> to solve a particular problem")
+        println("Run with --problem-file <filepath.desc> to solve a particular problem")
 
         val Parsed.Success(task, successIndex) = parse("(0,0),(10,0),(10,10),(0,10)#(0,0)##", parseTask(_))
+//        val Parsed.Success(task, successIndex) = parse("(0,0),(6,0),(6,1),(8,1),(8,2),(6,2),(6,3),(0,3)#(0,0)##", parseTask(_))
+
         println(task)
         println(successIndex)
 

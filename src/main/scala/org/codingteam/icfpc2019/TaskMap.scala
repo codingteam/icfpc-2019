@@ -14,4 +14,8 @@ case class TaskMap(vertices: List[Pos]) {
   def size() : Pos = {
     Pos(maxX - minX, maxY - minY)
   }
+
+  def getArea() : BigInt = {
+    Obstacle(vertices).getArea()
+  }
 }
