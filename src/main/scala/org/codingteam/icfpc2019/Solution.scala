@@ -6,18 +6,31 @@ import scala.collection.immutable.List
 
 sealed abstract class Action {
   def apply(board : Board) : Board
+
+  def moveBot(board: Board, fn : Pos => Pos) : Board = {
+    val bot = board.bot
+    val newPos = fn(bot.position)
+    val newBot = bot.copy(position = newPos)
+    val newWrappedCells = board.wrappedCells ++
+      (bot.wrappedCells(board) ++ newBot.wrappedCells(board))
+        .filter(pos => pos.x < board.task.map.maxX && pos.y < board.task.map.maxY)
+    board.copy(bot = newBot, wrappedCells = newWrappedCells)
+  }
 }
 case object MoveUp extends Action {
   override def toString: String = "W"
 
   override def apply(board : Board) : Board = {
-    val bot = board.bot
-    val newBot = bot.copy(position = Pos(bot.position.x, bot.position.y+1))
-    val newWrappedCells = board.wrappedCells ++
-      (bot.wrappedCells(board) ++ newBot.wrappedCells(board))
-        .filter(pos => pos.x < board.task.map.maxX && pos.y < board.task.map.maxY)
+    val move : Pos => Pos = pos => Pos(pos.x, pos.y+1)
+    val ticked = board.tick
+    val newBoard = moveBot(ticked, move)
+    val newBoard2 =
+      if (ticked.isFastWheelsEnabled())
+        moveBot(newBoard, move)
+      else
+        newBoard
     val newSolution = board.solution.addAction(MoveUp)
-    board.tick.copy(bot = newBot, solution = newSolution, wrappedCells =  newWrappedCells)
+    newBoard2.copy(solution = newSolution)
   }
 }
 
@@ -25,13 +38,16 @@ case object MoveDown extends Action {
   override def toString: String = "S"
 
   override def apply(board : Board) : Board = {
-    val bot = board.bot
-    val newBot = bot.copy(position = Pos(bot.position.x, bot.position.y-1))
-    val newWrappedCells = board.wrappedCells ++
-      (bot.wrappedCells(board) ++ newBot.wrappedCells(board))
-        .filter(pos => pos.x < board.task.map.maxX && pos.y < board.task.map.maxY)
+    val move : Pos => Pos = pos => Pos(pos.x, pos.y-1)
+    val ticked = board.tick
+    val newBoard = moveBot(ticked, move)
+    val newBoard2 =
+      if (ticked.isFastWheelsEnabled())
+        moveBot(newBoard, move)
+      else
+        newBoard
     val newSolution = board.solution.addAction(MoveDown)
-    board.tick.copy(bot = newBot, solution = newSolution, wrappedCells =  newWrappedCells)
+    newBoard2.copy(solution = newSolution)
   }
 }
 
@@ -39,13 +55,16 @@ case object MoveLeft extends Action {
   override def toString: String = "A"
 
   override def apply(board : Board) : Board = {
-    val bot = board.bot
-    val newBot = bot.copy(position = Pos(bot.position.x-1, bot.position.y))
-    val newWrappedCells = board.wrappedCells ++
-      (bot.wrappedCells(board) ++ newBot.wrappedCells(board))
-        .filter(pos => pos.x < board.task.map.maxX && pos.y < board.task.map.maxY)
+    val move : Pos => Pos = pos => Pos(pos.x-1, pos.y)
+    val ticked = board.tick
+    val newBoard = moveBot(ticked, move)
+    val newBoard2 =
+      if (ticked.isFastWheelsEnabled())
+        moveBot(newBoard, move)
+      else
+        newBoard
     val newSolution = board.solution.addAction(MoveLeft)
-    board.tick.copy(bot = newBot, solution = newSolution, wrappedCells =  newWrappedCells)
+    newBoard2.copy(solution = newSolution)
   }
 }
 
@@ -53,13 +72,16 @@ case object MoveRight extends Action {
   override def toString: String = "D"
 
   override def apply(board : Board) : Board = {
-    val bot = board.bot
-    val newBot = bot.copy(position = Pos(bot.position.x+1, bot.position.y))
-    val newWrappedCells = board.wrappedCells ++
-      (bot.wrappedCells(board) ++ newBot.wrappedCells(board))
-        .filter(pos => pos.x < board.task.map.maxX && pos.y < board.task.map.maxY)
+    val move : Pos => Pos = pos => Pos(pos.x+1, pos.y)
+    val ticked = board.tick
+    val newBoard = moveBot(ticked, move)
+    val newBoard2 =
+      if (ticked.isFastWheelsEnabled())
+        moveBot(newBoard, move)
+      else
+        newBoard
     val newSolution = board.solution.addAction(MoveRight)
-    board.tick.copy(bot = newBot, solution = newSolution, wrappedCells =  newWrappedCells)
+    newBoard2.copy(solution = newSolution)
   }
 }
 
@@ -119,7 +141,11 @@ case object AttachFastWheels extends Action {
 
   override def apply(board : Board) : Board = {
     val newSolution = board.solution.addAction(AttachFastWheels)
-    board.tick.copy(remainingFastWheels = 50, solution = newSolution)
+    val newFastWheels = if (board.isFastWheelsEnabled())
+                          board.remainingFastWheels + 50
+                        else 50
+    println("Attach!")
+    board.tick.copy(fastWheelsEnabled = true, remainingFastWheels = newFastWheels, solution = newSolution)
   }
 
 }
@@ -145,6 +171,9 @@ class Solution(reversedActions : List[Action]) {
 
         case TurnClockwise | TurnCounterClockwise =>
           return 0.5
+
+        case AttachFastWheels =>
+          return 0
 
         case _ =>
           return 1.0

@@ -100,6 +100,18 @@ object AppEntry extends App {
         println(newBoard.getArea())
         println(newBoard.calcDistanceToUnwrapped(false))
 
+      case Array("--test-booster", filepath) =>
+        val source = Source.fromFile(filepath)
+        val contents = try source.mkString finally source.close()
+        val Parsed.Success(task, successIndex) = parse(contents, parseTask(_))
+        // TODO[F]: Put the build results into the output
+        val board = Board(task)
+        val board1 = board.copy(bot = board.bot.copy(position = Pos(9,1)))
+        println(board1.currentBooster())
+        val board2 = AttachFastWheels(board1)
+        println(board2)
+        println(Solver.solutionLength(board2))
+
       case _ =>
         println("Run with --problem-file <filepath.desc> to solve a particular problem")
 

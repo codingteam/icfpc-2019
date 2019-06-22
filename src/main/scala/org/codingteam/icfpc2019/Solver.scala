@@ -80,6 +80,9 @@ object Solver {
         if (counterclockwise.wrappedCells.size > bestBoard.wrappedCells.size)
           neighbours = counterclockwise :: neighbours
 
+        if (bestBoard.hasFastWheels)
+          neighbours = AttachFastWheels(bestBoard) :: neighbours
+
           //TurnCounterClockwise.apply(bestBoard),
           // TODO[M]: Generate all the positions where a manipulator can be attached, and use them to create new Boards
 //          AttachManipulator.apply(bestBoard),

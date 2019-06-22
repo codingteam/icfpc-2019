@@ -5,6 +5,9 @@ import org.codingteam.icfpc2019._
 case class Board(task : Task, bot : Bot,
                  wrappedCells : Set[Pos],
                  obstacles : List[Obstacle],
+                 boosters : List[Booster],
+                 hasFastWheels : Boolean,
+                 fastWheelsEnabled : Boolean,
                  remainingFastWheels : Int,
                  remainingDrill : Int,
                  solution: Solution
@@ -33,14 +36,47 @@ case class Board(task : Task, bot : Bot,
   }
 
   def tick() : Board = {
-    val newWheels = if (remainingFastWheels >= 1) remainingFastWheels - 1 else 0
+    val newWheels = if (fastWheelsEnabled && remainingFastWheels >= 1) remainingFastWheels - 1 else 0
+    val newWheelsEnabled = if (fastWheelsEnabled && remainingFastWheels == 0) false else fastWheelsEnabled
+    val newHasFastWheels = if (isAtFastWheelsBooster())
+                             true
+                           else
+                             if (remainingFastWheels > 0)
+                                hasFastWheels
+                             else false
     val newDrill = if (remainingDrill >= 1) remainingDrill - 1 else 0
-    copy(remainingFastWheels = newWheels, remainingDrill = newDrill)
+    val newBoosters = currentBooster() match {
+      case None => boosters
+      case Some(booster) => boosters.filter(b => b != booster)
+    }
+    //println("Booster: " + currentBooster().toString)
+    copy(boosters = newBoosters, remainingFastWheels = newWheels, remainingDrill = newDrill, fastWheelsEnabled = newWheelsEnabled, hasFastWheels = newHasFastWheels)
   }
 
   def isDrillEnabled() : Boolean = remainingDrill > 0
 
-  def isFastWheelsEnabled() : Boolean = remainingFastWheels > 0
+  def isFastWheelsEnabled() : Boolean = fastWheelsEnabled && remainingFastWheels > 0
+
+  def currentBooster() : Option[Booster] = {
+    boosters.filter(b => bot.wrappedCells(this).contains(b.pos)) match {
+      case Nil => None
+      case booster :: _ => Some(booster)
+    }
+  }
+
+  def boosterAt(pos: Pos) : Option[Booster] = {
+    boosters.filter(b => b.pos == pos) match {
+      case Nil => None
+      case booster :: _ => Some(booster)
+    }
+  }
+
+  def isAtFastWheelsBooster() : Boolean = {
+    currentBooster() match {
+      case Some(FastWheels(_)) => true
+      case _ => false
+    }
+  }
 
   // TODO[M]: Replace with a full-fledged check. For now, I assume there are no obstacles
   def isWrapped() : Boolean = {
@@ -134,22 +170,27 @@ case class Board(task : Task, bot : Bot,
             if (bot.wrappedCells(this).contains(pos))
               "∘"
             else
-              if (isValidPosition(pos))
-                  if (wrappedCells.contains(pos))
-                    "+"
-                  else
-                    " "
-                else "#"
+              boosterAt(pos) match {
+                case None =>
+                  if (isValidPosition(pos))
+                    if (wrappedCells.contains(pos))
+                      "+"
+                    else
+                      " "
+                  else "#"
+                case Some(booster) => booster.symbol()
+              }
         result.append(point)
       }
       result.append("\n")
     }
-    result + "\n" + solution.toString
+    val aboutBoosters = boosters.mkString(", ") + s"\nhas fast wheels: $hasFastWheels, fast wheels enabled: $fastWheelsEnabled, remaining: $remainingFastWheels"
+    result + "\n" + aboutBoosters + "\n" + solution.toString
   }
 }
 
 object Board {
   def apply(task : Task) : Board = {
-    Board(task, Bot(task.startPos, Direction.RIGHT, Set[Pos]()), Set[Pos](), task.obstacles, 0, 0, new Solution(List[Action]()))
+    Board(task, Bot(task.startPos, Direction.RIGHT, Set[Pos]()), Set[Pos](), task.obstacles, task.boosters, false, false, 0, 0, new Solution(List[Action]()))
   }
 }
