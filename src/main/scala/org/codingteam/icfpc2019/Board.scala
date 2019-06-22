@@ -114,7 +114,10 @@ case class Board(task : Task, bot : Bot,
       }
       result.append("\n")
     }
-    result + "\n" + solution.toString
+
+    val drills = remainingDrillTicks.toString + " drill ticks, and " + remainingDrills + " drills, remain"
+
+    result + "\n" + drills + "\n" + solution.toString
   }
 }
 
