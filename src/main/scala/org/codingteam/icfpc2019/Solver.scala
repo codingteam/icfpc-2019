@@ -6,7 +6,7 @@ import scala.collection.mutable.PriorityQueue
 import main.scala.org.codingteam.icfpc2019.{Board, Bot, Direction}
 
 object Solver {
-    def solutionLength(board: Board): Int = {
+    def solutionLength(board: Board): Double = {
       val allCellsCoords = for {x <- BigInt(0) until board.task.map.maxX; y <- BigInt(0) until board.task.map.maxY if board.isValidPosition(Pos(x,y))}
           yield (x, y)
       val unwrappedCells = allCellsCoords.filter((coords) => !board.wrappedCells.contains(Pos(coords._1, coords._2)))
@@ -21,7 +21,7 @@ object Solver {
                 scala.math.pow((coords._2 - board.bot.position.y).toDouble, 2.0))
             .sum)
 
-      5*board.wrappedCells.size - euclideanToNearest.round.toInt - board.solution.length
+      5*board.wrappedCells.size - euclideanToNearest - board.solution.length
     }
 
     def solve(task: Task): Solution = {
