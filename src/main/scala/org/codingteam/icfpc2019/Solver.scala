@@ -29,7 +29,7 @@ object Solver {
 
 
       val open = PriorityQueue[Board](initialBoard)(Ordering.by(solutionLength))
-      println("Starting with" + initialBoard.toString)
+      println("Starting with\n" + initialBoard.toString)
       var closed = Set[Board]()
 
       while (open.nonEmpty) {
