@@ -1,6 +1,6 @@
 package org.codingteam.icfpc2019
 
-import main.scala.org.codingteam.icfpc2019.{Board, Bot, Direction}
+import main.scala.org.codingteam.icfpc2019.{Board, Direction}
 
 sealed abstract class Action {
   def apply(board : Board) : Board
@@ -163,7 +163,6 @@ case object AttachFastWheels extends Action {
     val newSolution = board.solution.addAction(AttachFastWheels)
     // We always tick the board *before* performing a movement, so we have to +1 the counter to compensate for that
     val newFastWheels = 50 + 1
-    println("Attach!")
     board.tick.copy(fastWheelsEnabled = true, remainingFastWheels = newFastWheels, solution = newSolution)
   }
 
