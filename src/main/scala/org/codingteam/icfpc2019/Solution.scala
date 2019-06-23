@@ -124,7 +124,10 @@ case object TurnClockwise extends Action {
     val bot = board.bot
     val newBot = bot.copy(direction = Direction.clockwise(bot.direction))
     val newSolution = board.solution.addAction(TurnClockwise)
-    board.tick.copy(solution = newSolution, bot = newBot)
+    val newWrappedCells = board.wrappedCells ++
+      (bot.wrappedCells(board) ++ newBot.wrappedCells(board))
+        .filter(pos => pos.x < board.task.map.maxX && pos.y < board.task.map.maxY)
+    board.tick.copy(solution = newSolution, bot = newBot, wrappedCells = newWrappedCells)
   }
 }
 
@@ -135,7 +138,10 @@ case object TurnCounterClockwise extends Action {
     val bot = board.bot
     val newBot = bot.copy(direction = Direction.counterclockwise(bot.direction))
     val newSolution = board.solution.addAction(TurnCounterClockwise)
-    board.tick.copy(solution = newSolution, bot = newBot)
+    val newWrappedCells = board.wrappedCells ++
+      (bot.wrappedCells(board) ++ newBot.wrappedCells(board))
+        .filter(pos => pos.x < board.task.map.maxX && pos.y < board.task.map.maxY)
+    board.tick.copy(solution = newSolution, bot = newBot, wrappedCells = newWrappedCells)
   }
 }
 
