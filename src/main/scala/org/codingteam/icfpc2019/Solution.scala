@@ -178,6 +178,24 @@ case object StartDrill extends Action {
   }
 }
 
+case object Reset extends Action {
+  override def toString: String = "R"
+
+  override def apply(board: Board): Board = {
+    val newSolution = board.solution.addAction(Reset)
+    board.tick.copy(solution = newSolution)
+  }
+}
+
+case class Shift(pos: Pos) extends Action {
+  override def toString: String = "T" + pos.toString
+
+  override def apply(board: Board): Board = {
+    val newSolution = board.solution.addAction(Shift(pos))
+    board.tick.copy(solution = newSolution)
+  }
+}
+
 class Solution(val reversedActions : Vector[Action]) {
   override def toString: String = reversedActions.reverseIterator.map(_.toString).mkString("")
 
