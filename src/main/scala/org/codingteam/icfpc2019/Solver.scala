@@ -139,11 +139,14 @@ object Solver {
           neighbours = withWheels +: (trivialNeighbours(withWheels) ++ neighbours)
         }
 
-        if (bestBoard.teleportsCount > 0)
-          neighbours = Reset(bestBoard) :: neighbours
+        if (bestBoard.teleportsCount > 0) {
+          val withTeleportInstalled = Reset(bestBoard)
+          neighbours = withTeleportInstalled +: (trivialNeighbours(withTeleportInstalled) ++ neighbours)
+        }
 
         for (teleport <- bestBoard.installedTeleports) {
-          neighbours = Shift(teleport)(bestBoard) :: neighbours
+          val afterTeleporting = Shift(teleport)(bestBoard)
+          neighbours = afterTeleporting +: (trivialNeighbours(afterTeleporting) ++ neighbours)
         }
 
           //TurnCounterClockwise.apply(bestBoard),
