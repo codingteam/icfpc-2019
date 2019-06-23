@@ -144,16 +144,19 @@ case class Bot (position: Pos, direction : Direction, extraManipulators : Set[Po
     cells.map(_.neighbours()).flatten.filter(p => board.isValidPosition(p) && ! cells.contains(p))
   }
 
-  def isVisible(board: Board, p: Pos) : Boolean = {
-    val obstacles = boundingBox().filter(p => !board.isValidPosition(p))
-    for (o <- obstacles) {
-      println(o)
-      println(evalLine(position, o, p))
+  def isWrapped(board: Board, p: Pos) : Boolean = {
+    if (board.isValidPosition(p))
+      true
+    else {
+      val obstacles = boundingBox().filter(x => !board.isValidPosition(x))
+//      for (o <- obstacles) {
+//        println(s"visible? $position => $p ($o): ${evalLine(position, p, o)}")
+//      }
+      obstacles.isEmpty || !obstacles.exists(o => evalLine(position, p, o))
     }
-    obstacles.isEmpty || ! obstacles.exists(o => evalLine(position, o, p))
   }
 
   def wrappedCells(board : Board): Set[Pos] = {
-    occupiedCells().filter(p => board.isValidPosition(p) && isVisible(board, p))
+    occupiedCells().filter(isWrapped(board, _))
   }
 }

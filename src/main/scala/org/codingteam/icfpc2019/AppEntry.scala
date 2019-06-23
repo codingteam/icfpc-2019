@@ -90,6 +90,7 @@ object AppEntry extends App {
         val newBoard = MoveUp(MoveUp(board))
         println(newBoard)
         println(newBoard.isValid())
+        println(newBoard.bot.wrappedCells(newBoard))
         val score = Solver.solutionLength(newBoard)
         println(score)
         println(newBoard.getArea())

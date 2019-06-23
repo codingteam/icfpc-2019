@@ -226,6 +226,7 @@ class Solution(val reversedActions : Vector[Action]) {
     a match {
       case AttachFastWheels => true
       case StartDrill => true
+      case AttachManipulator(_) => true
       case _ => false
     }
   }

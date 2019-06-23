@@ -126,13 +126,13 @@ object Solver {
         if (bestBoard.hasFastWheels && ! bestBoard.fastWheelsEnabled)
           neighbours = AttachFastWheels(bestBoard) :: neighbours
 
-//        if (bestBoard.extraManipulators > 0) {
-//          for (pos <- bestBoard.bot.neighbours(bestBoard)) {
-//            val action = AttachManipulator(bestBoard.bot.makeRelative(pos))
-//            println(action)
-//            neighbours = action(bestBoard) :: neighbours
-//          }
-//        }
+        if (bestBoard.extraManipulators > 0) {
+          for (pos <- bestBoard.bot.neighbours(bestBoard)) {
+            val action = AttachManipulator(bestBoard.bot.makeRelative(pos))
+            println(action)
+            neighbours = action(bestBoard) :: neighbours
+          }
+        }
 
           //TurnCounterClockwise.apply(bestBoard),
           // TODO[M]: Generate all the positions where a manipulator can be attached, and use them to create new Boards
