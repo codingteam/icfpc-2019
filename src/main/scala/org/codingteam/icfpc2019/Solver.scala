@@ -139,6 +139,13 @@ object Solver {
           neighbours = withWheels +: (trivialNeighbours(withWheels) ++ neighbours)
         }
 
+        if (bestBoard.teleportsCount > 0)
+          neighbours = Reset(bestBoard) :: neighbours
+
+        for (teleport <- bestBoard.installedTeleports) {
+          neighbours = Shift(teleport)(bestBoard) :: neighbours
+        }
+
           //TurnCounterClockwise.apply(bestBoard),
           // TODO[M]: Generate all the positions where a manipulator can be attached, and use them to create new Boards
 //          AttachManipulator.apply(bestBoard),

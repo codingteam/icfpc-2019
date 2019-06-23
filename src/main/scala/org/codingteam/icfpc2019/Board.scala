@@ -223,7 +223,7 @@ case class Board(task : Task, bot : Bot,
 
     val aboutBoosters = boosters.mkString(", ") +
       s"\nhas fast wheels: $hasFastWheels, fast wheels enabled: $fastWheelsEnabled, remaining: $remainingFastWheels" +
-      s"\nteleports count: $teleportsCount"
+      s"\nteleports count: $teleportsCount, installed at: $installedTeleports"
     result + "\n" + aboutBoosters + "\n" + drills + "\n" + solution.toString
   }
 

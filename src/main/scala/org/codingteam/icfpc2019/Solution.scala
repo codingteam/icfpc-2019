@@ -203,7 +203,9 @@ case class Shift(pos: Pos) extends Action {
 
   override def apply(board: Board): Board = {
     val newSolution = board.solution.addAction(Shift(pos))
-    board.tick.copy(solution = newSolution)
+    val newBotPosition = pos
+    val newBot = board.bot.copy(position = newBotPosition)
+    board.tick.copy(solution = newSolution, bot = newBot)
   }
 }
 
