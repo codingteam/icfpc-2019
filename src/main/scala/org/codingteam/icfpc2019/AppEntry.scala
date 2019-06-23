@@ -41,8 +41,10 @@ object AppEntry extends App {
 
   def parseTeleport[_: P]: P[Teleport] = P("R" ~ parsePos).map(Teleport(_))
 
+  def parseClone[_: P]: P[Clone] = P("C" ~ parsePos).map(Clone(_))
+
   def parseBooster[_: P]: P[Booster] =
-    P(parseManipulatorExtension | parseFastWheels | parseDrill | parseMysteriousPoint | parseTeleport)
+    P(parseManipulatorExtension | parseFastWheels | parseDrill | parseMysteriousPoint | parseTeleport | parseClone)
 
   def parseBoosters[_: P]: P[List[Booster]] = P(parseBooster.rep(sep = ";")).map(_.toList)
 
@@ -135,10 +137,10 @@ object AppEntry extends App {
     val source = Source.fromFile(taskFilePath.toFile)
     val contents = try source.mkString finally source.close()
     parse(contents, parseTask(_)) match {
-      case Parsed.Failure(_, _, _) =>
-        println(s"Cannot parse task file $taskFilePath")
+      case error@Parsed.Failure(_, _, _) =>
+        println(s"Cannot parse task file $taskFilePath: $error")
         false
-      case Parsed.Success(task, successIndex) =>
+      case Parsed.Success(task, _) =>
         val board = Board(task)
         if (detailedLogs) {
           println(task)

@@ -21,3 +21,6 @@ case class MysteriousPoint(pos: Pos) extends Booster {
 case class Teleport(pos: Pos) extends Booster {
   override def symbol(): String = "R"
 }
+case class Clone(pos: Pos) extends Booster {
+  override def symbol(): String = "C"
+}
