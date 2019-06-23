@@ -192,7 +192,9 @@ case object Reset extends Action {
 
   override def apply(board: Board): Board = {
     val newSolution = board.solution.addAction(Reset)
-    board.tick.copy(solution = newSolution)
+    val newInstalledTeleports = board.installedTeleports :+ board.bot.position
+    val newTeleportsCount = board.teleportsCount - 1
+    board.tick.copy(solution = newSolution, teleportsCount = newTeleportsCount, installedTeleports = newInstalledTeleports)
   }
 }
 
@@ -201,7 +203,9 @@ case class Shift(pos: Pos) extends Action {
 
   override def apply(board: Board): Board = {
     val newSolution = board.solution.addAction(Shift(pos))
-    board.tick.copy(solution = newSolution)
+    val newBotPosition = pos
+    val newBot = board.bot.copy(position = newBotPosition)
+    board.tick.copy(solution = newSolution, bot = newBot)
   }
 }
 
@@ -269,6 +273,9 @@ class Solution(val reversedActions : Vector[Action]) {
     a match {
       case AttachFastWheels => true
       case StartDrill => true
+      case Reset => true
+      // We don't count teleportation because if we do, the bot will just teleport on every step, gaming the metric
+      case Shift(_) => false
       case _ => false
     }
   }

@@ -53,7 +53,7 @@ object Solver {
       //2*board.wrappedCells.size - board.solution.length() - board.frontLength - board.distanceToUnwrapped
       //board.wrappedCells.size - board.solution.length() - board.frontLength - board.distanceToUnwrapped
 
-      val score = board.wrappedCells.size
+      val score = board.wrappedCells.size + board.solution.usedBoostersCount() * 50
       (score, -board.distanceToUnwrapped, - board.solution.length)
     }
 
@@ -137,6 +137,16 @@ object Solver {
         if (bestBoard.hasFastWheels && ! bestBoard.fastWheelsEnabled) {
           val withWheels = AttachFastWheels(bestBoard)
           neighbours = withWheels +: (trivialNeighbours(withWheels) ++ neighbours)
+        }
+
+        if (bestBoard.teleportsCount > 0) {
+          val withTeleportInstalled = Reset(bestBoard)
+          neighbours = withTeleportInstalled +: (trivialNeighbours(withTeleportInstalled) ++ neighbours)
+        }
+
+        for (teleport <- bestBoard.installedTeleports) {
+          val afterTeleporting = Shift(teleport)(bestBoard)
+          neighbours = afterTeleporting +: (trivialNeighbours(afterTeleporting) ++ neighbours)
         }
 
           //TurnCounterClockwise.apply(bestBoard),
