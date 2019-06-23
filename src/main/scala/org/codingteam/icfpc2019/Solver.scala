@@ -53,8 +53,27 @@ object Solver {
       //2*board.wrappedCells.size - board.solution.length() - board.frontLength - board.distanceToUnwrapped
       //board.wrappedCells.size - board.solution.length() - board.frontLength - board.distanceToUnwrapped
 
-      val score = board.wrappedCells.size + (board.solution.usedBoostersCount() * 50).round
+      val score = board.wrappedCells.size
       (score, -board.distanceToUnwrapped, - board.solution.length)
+    }
+
+    def trivialNeighbours(board: Board): List[Board] = {
+      var neighbours = List[Board](
+        MoveUp.apply(board),
+        MoveDown.apply(board),
+        MoveLeft.apply(board),
+        MoveRight.apply(board)
+      )
+
+      val clockwise : Board = TurnClockwise.apply(board)
+      if (clockwise.wrappedCells.size > board.wrappedCells.size)
+        neighbours = clockwise :: neighbours
+
+      val counterclockwise : Board = TurnCounterClockwise.apply(board)
+      if (counterclockwise.wrappedCells.size > board.wrappedCells.size)
+        neighbours = counterclockwise :: neighbours
+
+      neighbours
     }
 
     def solve(task: Task, filePath: Path, detailedLogs: Boolean, maxDuration: Option[Duration]): Option[Solution] = {
@@ -104,27 +123,21 @@ object Solver {
 
         closed = closed + bestBoard.withoutSolution()
 
-        var neighbours = List[Board](
-          MoveUp.apply(bestBoard),
-          MoveDown.apply(bestBoard),
-          MoveLeft.apply(bestBoard),
-          MoveRight.apply(bestBoard)
-        )
-        //          NoOp.apply(bestBoard),
+        var neighbours = trivialNeighbours(bestBoard)
 
-        val clockwise : Board = TurnClockwise.apply(bestBoard)
-        if (clockwise.wrappedCells.size > bestBoard.wrappedCells.size)
-          neighbours = clockwise :: neighbours
+        neighbours = trivialNeighbours(TurnClockwise(bestBoard)) ++ neighbours
 
-        val counterclockwise : Board = TurnCounterClockwise.apply(bestBoard)
-        if (counterclockwise.wrappedCells.size > bestBoard.wrappedCells.size)
-          neighbours = counterclockwise :: neighbours
+        neighbours = trivialNeighbours(TurnCounterClockwise(bestBoard)) ++ neighbours
 
-        if (bestBoard.remainingDrills > 0)
-          neighbours = StartDrill(bestBoard) :: neighbours
+        if (bestBoard.remainingDrills > 0) {
+          val withDrill = StartDrill(bestBoard)
+          neighbours = withDrill +: (trivialNeighbours(withDrill) ++ neighbours)
+        }
 
-        if (bestBoard.hasFastWheels && ! bestBoard.fastWheelsEnabled)
-          neighbours = AttachFastWheels(bestBoard) :: neighbours
+        if (bestBoard.hasFastWheels && ! bestBoard.fastWheelsEnabled) {
+          val withWheels = AttachFastWheels(bestBoard)
+          neighbours = withWheels +: (trivialNeighbours(withWheels) ++ neighbours)
+        }
 
           //TurnCounterClockwise.apply(bestBoard),
           // TODO[M]: Generate all the positions where a manipulator can be attached, and use them to create new Boards

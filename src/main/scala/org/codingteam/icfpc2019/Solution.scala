@@ -11,15 +11,18 @@ sealed abstract class Action {
     val bot = board.bot
     val newPos = fn(bot.position)
     val newBot = bot.copy(position = newPos)
-    val newWrappedCells = board.wrappedCells ++
-      (bot.wrappedCells(board) ++ newBot.wrappedCells(board))
-        .filter(pos => pos.x < board.task.map.maxX && pos.y < board.task.map.maxY)
 
     var drilled = board.drilledObstacles
     if (board.remainingDrillTicks > 0 && board.obstacles.exists(o => o.containsPosition(newBot.position)))
       drilled = drilled + newBot.position
 
-    board.copy(bot = newBot, wrappedCells = newWrappedCells, drilledObstacles = drilled)
+    val newBoard = board.copy(bot = newBot, drilledObstacles = drilled)
+
+    val newWrappedCells = newBoard.wrappedCells ++
+      (bot.wrappedCells(newBoard) ++ newBot.wrappedCells(newBoard))
+        .filter(pos => pos.x < newBoard.task.map.maxX && pos.y < newBoard.task.map.maxY)
+
+    newBoard.copy(wrappedCells = newWrappedCells)
   }
 }
 case object MoveUp extends Action {
