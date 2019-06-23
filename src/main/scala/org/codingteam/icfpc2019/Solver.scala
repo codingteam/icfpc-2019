@@ -23,6 +23,20 @@ class PriorityQueueSet(queue: mutable.PriorityQueue[Board], set: mutable.Set[Boa
   }
 }
 
+//case class Score(score : Double, distance : Int, length : Double) extends Ordered[Score] {
+//  override def compare(that: Score): Int = {
+//    if ((this.score - that.score).abs <= 1) {
+//      this.scalar().compare(that.scalar())
+//    } else {
+//      this.score.compare(that.score)
+//    }
+//  }
+//
+//  def scalar() : Double = {
+//    10 * score + 5 * distance + length
+//  }
+//}
+
 object Solver {
 
     def distance(pos1: Pos, pos2: Pos): Double = {
@@ -38,7 +52,8 @@ object Solver {
       //10*board.wrappedCells.size - board.solution.length - board.distanceToUnwrapped
       //2*board.wrappedCells.size - board.solution.length() - board.frontLength - board.distanceToUnwrapped
       //board.wrappedCells.size - board.solution.length() - board.frontLength - board.distanceToUnwrapped
-      val score = board.wrappedCells.size
+
+      val score = board.wrappedCells.size + (board.solution.boostersCount() * 50).round
       (score, -board.distanceToUnwrapped, - board.solution.length)
     }
 
@@ -104,6 +119,12 @@ object Solver {
         val counterclockwise : Board = TurnCounterClockwise.apply(bestBoard)
         if (counterclockwise.wrappedCells.size > bestBoard.wrappedCells.size)
           neighbours = counterclockwise :: neighbours
+
+        if (bestBoard.remainingDrills > 0)
+          neighbours = StartDrill(bestBoard) :: neighbours
+
+        if (bestBoard.hasFastWheels && ! bestBoard.fastWheelsEnabled)
+          neighbours = AttachFastWheels(bestBoard) :: neighbours
 
           //TurnCounterClockwise.apply(bestBoard),
           // TODO[M]: Generate all the positions where a manipulator can be attached, and use them to create new Boards

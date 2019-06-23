@@ -50,6 +50,9 @@ object AppEntry extends App {
       case Array("--problem-file", filepath) =>
         solveTask(Paths.get(filepath))
 
+      case Array("--problem-file", "--quiet", filepath) =>
+        solveTask(Paths.get(filepath), detailedLogs = false)
+
       case Array("--directory", directory) => solveDirectory(directory)
       case Array("--directory", directory, "--minutes", minutes) => solveDirectory(directory, minutes)
       case Array("--directory", directory, "--cores", cores) => solveDirectory(directory, _, cores)
@@ -89,6 +92,18 @@ object AppEntry extends App {
         println(score)
         println(newBoard.getArea())
         println(newBoard.calcDistanceToUnwrapped(false))
+
+      case Array("--test-booster", filepath) =>
+        val source = Source.fromFile(filepath)
+        val contents = try source.mkString finally source.close()
+        val Parsed.Success(task, successIndex) = parse(contents, parseTask(_))
+        // TODO[F]: Put the build results into the output
+        val board = Board(task)
+        val board1 = board.copy(bot = board.bot.copy(position = Pos(9,1)))
+        println(board1.currentBooster())
+        val board2 = AttachFastWheels(board1)
+        println(board2)
+        println(Solver.solutionLength(board2))
 
       case _ =>
         println(
