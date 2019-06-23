@@ -170,10 +170,10 @@ case class Board(task : Task, bot : Bot,
       //println(s"Left: $left")
     } while (! stop && left > 0)
 
-    if (left == 0) {
-      d = 0
-      s = 0
-    }
+//    if (left == 0) {
+//      d = 0
+//      s = 0
+//    }
 
     if (nearest)
       d
