@@ -11,14 +11,14 @@ import scala.concurrent.duration.Duration
 class PriorityQueueSet(queue: mutable.PriorityQueue[Board], set: mutable.Set[Board]) {
   def isEmpty: Boolean = queue.isEmpty
   def size: Int = queue.size
-  def contains(board: Board): Boolean = set.contains(board)
+  def contains(board: Board): Boolean = set.contains(board.withoutSolution())
   def enqueue(board: Board): Unit = {
     queue.enqueue(board)
-    set.add(board)
+    set.add(board.withoutSolution())
   }
   def dequeue(): Board = {
     val board = queue.dequeue()
-    set.remove(board)
+    set.remove(board.withoutSolution())
     board
   }
 }
@@ -32,6 +32,7 @@ object Solver {
       )
     }
 
+    //def solutionLength(board: Board): (Double, Double, Int) = {
     def solutionLength(board: Board): (Double, Int, Double) = {
       //val unwrappedCells = (board.getArea() - board.wrappedCells.size).max(1)
       //10*board.wrappedCells.size - board.solution.length - board.distanceToUnwrapped
@@ -86,7 +87,7 @@ object Solver {
           return Some(bestBoard.solution)
         }
 
-        closed = closed + bestBoard
+        closed = closed + bestBoard.withoutSolution()
 
         var neighbours = List[Board](
           MoveUp.apply(bestBoard),
@@ -113,7 +114,7 @@ object Solver {
 
         val boardsToCheck = neighbours
             .filter(_.isValid())
-            .filter(!closed.contains(_))
+            .filter(b => !closed.contains(b.withoutSolution()))
             .filter(!open.contains(_))
 
         if (detailedLogs) {

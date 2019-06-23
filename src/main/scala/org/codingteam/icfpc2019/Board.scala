@@ -148,6 +148,10 @@ case class Board(task : Task, bot : Bot,
     }
     result + "\n" + solution.toString
   }
+
+  def withoutSolution(): Board = {
+    copy(solution = new Solution(Vector[Action]()))
+  }
 }
 
 object Board {
