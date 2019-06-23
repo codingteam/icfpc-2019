@@ -149,10 +149,12 @@ case class AttachManipulator(pos: Pos) extends Action {
   override def toString: String = "B" + pos.toString
 
   override def apply(board : Board) : Board = {
+    println("Attach!")
     val bot = board.bot
-    val newBot = bot.copy(extraManipulators = bot.extraManipulators + bot.makeRelative(pos))
+    val newBot = bot.copy(extraManipulators = bot.extraManipulators + bot.makeRelativeRotation(pos))
     val newSolution = board.solution.addAction(AttachManipulator(pos))
-    board.tick.copy(solution = newSolution, bot = newBot)
+    val newManipulators = board.extraManipulators - 1
+    board.tick.copy(solution = newSolution, bot = newBot, extraManipulators = newManipulators)
   }
 }
 
@@ -206,6 +208,9 @@ class Solution(val reversedActions : Vector[Action]) {
 
         case AttachFastWheels =>
           return 0
+
+        case AttachManipulator(_) =>
+          return 0.1
 
         case _ =>
           1.0

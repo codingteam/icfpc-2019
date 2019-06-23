@@ -84,6 +84,9 @@ object AppEntry extends App {
         val Parsed.Success(task, successIndex) = parse(contents, parseTask(_))
         // TODO[F]: Put the build results into the output
         val board = Board(task)
+        println(board)
+        println(board.bot.wrappedCells(board))
+        //println(Solver.solutionLength(board))
         val newBoard = MoveUp(MoveUp(board))
         println(newBoard)
         println(newBoard.isValid())
@@ -91,6 +94,12 @@ object AppEntry extends App {
         println(score)
         println(newBoard.getArea())
         println(newBoard.calcDistanceToUnwrapped(false))
+        println(newBoard.bot.wrappedCells(newBoard))
+        var board2 = newBoard
+        for (pos <- newBoard.bot.neighbours(newBoard)) {
+          board2 = AttachManipulator(board2.bot.makeRelative(pos))(board2)
+        }
+        println(board2)
 
       case Array("--test-booster", filepath) =>
         val source = Source.fromFile(filepath)

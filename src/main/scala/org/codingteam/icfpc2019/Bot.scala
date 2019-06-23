@@ -92,10 +92,15 @@ case class Bot (position: Pos, direction : Direction, extraManipulators : Set[Po
     Pos(position.x + pos.x, position.y + pos.y)
   }
 
-  def makeRelative(pos : Pos) : Pos = {
+  def makeRelativeRotation(pos : Pos) : Pos = {
     // Current direciton of the bot can be different than RIGHT;
     // we want to store relative positions in extraManipulators
+    // val relative = Pos(pos.x - position.x, pos.y - position.y)
     rotate(pos, -rotation())
+  }
+
+  def makeRelative(pos : Pos) : Pos = {
+    Pos(pos.x - position.x, pos.y - position.y)
   }
 
   def occupiedCells() : Set[Pos] = {
@@ -111,8 +116,44 @@ case class Bot (position: Pos, direction : Direction, extraManipulators : Set[Po
     base ++ extraManipulators.map(m => translatePos(m))
   }
 
+  def boundingBox() : Set[Pos] = {
+    val cells = occupiedCells()
+    val xs = cells.map(_.x)
+    val ys = cells.map(_.y)
+    val minX = xs.min
+    val minY = ys.min
+    val maxX = xs.max
+    val maxY = ys.max
+
+    (for {x <- minX to maxX; y <- minY to maxY}
+      yield Pos(x,y)).toSet
+  }
+
+  def evalLine(p1 : Pos, p2 : Pos, p : Pos) : Boolean = {
+    def line(p : Pos) : BigInt = {
+      (p.x - p1.x) * (p2.y - p1.y) - (p.y - p1.y) * (p2.x - p1.x)
+    }
+    if (p == p1 || p == p2)
+      true
+    else
+      line(p).abs <= 1
+  }
+
+  def neighbours(board : Board) : Set[Pos] = {
+    val cells = occupiedCells()
+    cells.map(_.neighbours()).flatten.filter(p => board.isValidPosition(p) && ! cells.contains(p))
+  }
+
+  def isVisible(board: Board, p: Pos) : Boolean = {
+    val obstacles = boundingBox().filter(p => !board.isValidPosition(p))
+    for (o <- obstacles) {
+      println(o)
+      println(evalLine(position, o, p))
+    }
+    obstacles.isEmpty || ! obstacles.exists(o => evalLine(position, o, p))
+  }
+
   def wrappedCells(board : Board): Set[Pos] = {
-    // FIXME: this does not take into account rules about "visibility" (2.3)!
-    occupiedCells().filter(p => board.isValidPosition(p))
+    occupiedCells().filter(p => board.isValidPosition(p) && isVisible(board, p))
   }
 }
