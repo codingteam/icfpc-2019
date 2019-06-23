@@ -49,13 +49,11 @@ case class Board(task : Task, bot : Bot,
                              else false
 
     // Drills
-    var newDrills = currentBooster() match {
+    val newDrills = currentBooster() match {
       case Some(Drill(_)) => remainingDrills + 1
       case _ => remainingDrills
     }
     val newDrill = if (remainingDrillTicks >= 1) remainingDrillTicks - 1 else 0
-    if (remainingDrillTicks > 0 && newDrill == 0)
-      newDrills -= 1
 
     val newBoosters = currentBooster() match {
       case None => boosters
