@@ -49,6 +49,9 @@ object AppEntry extends App {
       case Array("--problem-file", filepath) =>
         solveTask(Paths.get(filepath))
 
+      case Array("--problem-file", "--quiet", filepath) =>
+        solveTask(Paths.get(filepath), detailedLogs = false)
+
       case Array("--directory", directory) => solveDirectory(directory)
       case Array("--directory", directory, "--minutes", minutes) => solveDirectory(directory, minutes)
       case Array("--directory", directory, "--cores", cores) => solveDirectory(directory, _, cores)

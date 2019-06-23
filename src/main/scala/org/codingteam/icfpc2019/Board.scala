@@ -5,14 +5,17 @@ import org.codingteam.icfpc2019._
 case class Board(task : Task, bot : Bot,
                  wrappedCells : Set[Pos],
                  obstacles : List[Obstacle],
+                 boosters: Set[Booster],
                  remainingFastWheels : Int,
-                 remainingDrill : Int,
+                 remainingDrills: Int,
+                 remainingDrillTicks : Int,
+                 drilledObstacles : Set[Pos],
                  solution: Solution
                 ) {
 
   def isValidPosition(pos : Pos) : Boolean = {
     val ind = pos.toIndex2D
-    (range contains ind) && filled(ind - range.a)
+    (range contains ind) && (filled(ind - range.a) || drilledObstacles.contains(pos))
   }
 
   def calcFrontLength() : Int = {
@@ -34,20 +37,20 @@ case class Board(task : Task, bot : Bot,
 
   def tick() : Board = {
     val newWheels = if (remainingFastWheels >= 1) remainingFastWheels - 1 else 0
-    val newDrill = if (remainingDrill >= 1) remainingDrill - 1 else 0
-    copy(remainingFastWheels = newWheels, remainingDrill = newDrill)
+    val newDrill = if (remainingDrillTicks >= 1) remainingDrillTicks - 1 else 0
+    copy(remainingFastWheels = newWheels, remainingDrillTicks = newDrill)
   }
 
-  def isDrillEnabled() : Boolean = remainingDrill > 0
+  def isDrillEnabled() : Boolean = remainingDrillTicks > 0
 
   def isFastWheelsEnabled() : Boolean = remainingFastWheels > 0
 
   // TODO[M]: Replace with a full-fledged check. For now, I assume there are no obstacles
   def isWrapped(detailedLogs: Boolean) : Boolean = {
     if (detailedLogs) {
-      println("there are " + area.toString() + " cells total, " + wrappedCells.size.toString() + " of which are wrapped")
+      println("there are " + getArea.toString() + " cells total, " + wrappedCells.size.toString() + " of which are wrapped")
     }
-    wrappedCells.size >= area
+    wrappedCells.size >= getArea
   }
 
   private def range = task.range
@@ -55,7 +58,7 @@ case class Board(task : Task, bot : Bot,
   private def area = task.area
 
   def getArea() : Int = {
-    area
+    area + drilledObstacles.size
   }
 
   def calcDistanceToUnwrapped(nearest : Boolean) : Int = {
@@ -146,12 +149,15 @@ case class Board(task : Task, bot : Bot,
       }
       result.append("\n")
     }
-    result + "\n" + solution.toString
+
+    val drills = remainingDrillTicks.toString + " drill ticks, and " + remainingDrills + " drills, remain"
+
+    result + "\n" + drills + "\n" + solution.toString
   }
 }
 
 object Board {
   def apply(task : Task) : Board = {
-    Board(task, Bot(task.startPos, Direction.RIGHT, Set[Pos]()), Set[Pos](), task.obstacles, 0, 0, new Solution(Vector[Action]()))
+    Board(task, Bot(task.startPos, Direction.RIGHT, Set[Pos]()), Set[Pos](), task.obstacles, task.boosters.toSet, 0, 0, 0, Set[Pos](), new Solution(Vector[Action]()))
   }
 }
