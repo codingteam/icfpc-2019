@@ -152,6 +152,6 @@ case class Board(task : Task, bot : Bot,
 
 object Board {
   def apply(task : Task) : Board = {
-    Board(task, Bot(task.startPos, Direction.RIGHT, Set[Pos]()), Set[Pos](), task.obstacles, 0, 0, new Solution(Vector[Action]()))
+    Board(task, Bot(task.startPos, Direction.RIGHT, Set[Pos]()), Set[Pos](), task.obstacles, 0, 0, new Solution(Vector[Action](), Vector[Int]()))
   }
 }

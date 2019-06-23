@@ -32,12 +32,15 @@ object Solver {
       )
     }
 
-    def solutionLength(board: Board): (Double, Int, Double) = {
+    def solutionLength(board: Board) = {
       //val unwrappedCells = (board.getArea() - board.wrappedCells.size).max(1)
       //10*board.wrappedCells.size - board.solution.length - board.distanceToUnwrapped
       //2*board.wrappedCells.size - board.solution.length() - board.frontLength - board.distanceToUnwrapped
       //board.wrappedCells.size - board.solution.length() - board.frontLength - board.distanceToUnwrapped
-      val score = board.wrappedCells.size
+      val score = (board.solution.effects.sum / board.solution.effects.length.toDouble) / 4000 + board.wrappedCells.size / board.getArea().toDouble
+//      val lastSpeed =
+//      if (board.distanceToUnwrapped > 5)
+//        score = 0
       (score, -board.distanceToUnwrapped, - board.solution.length)
     }
 
@@ -55,7 +58,7 @@ object Solver {
       } else {
         println(s"Starting on $fileName")
       }
-      var closed = Set[Board]()
+      var closed = Map[Set[Pos], Board]()
 
       var iterationCount = 0
       val startedAt = System.nanoTime()
@@ -86,7 +89,12 @@ object Solver {
           return Some(bestBoard.solution)
         }
 
-        closed = closed + bestBoard
+        closed.get(bestBoard.wrappedCells) match {
+          case None => closed = closed.updated(bestBoard.wrappedCells, bestBoard)
+          case Some(board2) if board2.solution.length > bestBoard.solution.length =>
+            closed = closed.updated(bestBoard.wrappedCells, bestBoard)
+          case _ =>
+        }
 
         var neighbours = List[Board](
           MoveUp.apply(bestBoard),
@@ -113,7 +121,11 @@ object Solver {
 
         val boardsToCheck = neighbours
             .filter(_.isValid())
-            .filter(!closed.contains(_))
+            .filter { board1 => closed.get(board1.wrappedCells) match {
+              case None => true
+              case Some(board2) if board2.solution.length > board1.solution.length => true
+              case _ => false
+            } }
             .filter(!open.contains(_))
 
         if (detailedLogs) {
