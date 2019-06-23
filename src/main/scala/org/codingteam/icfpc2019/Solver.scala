@@ -31,12 +31,12 @@ object Solver {
     }
 
     def solutionLength(board: Board): (Double, Int, Double) = {
-      val unwrappedCells = (board.getArea() - board.wrappedCells.size).max(1)
+      //val unwrappedCells = (board.getArea() - board.wrappedCells.size).max(1)
       //10*board.wrappedCells.size - board.solution.length - board.distanceToUnwrapped
       //2*board.wrappedCells.size - board.solution.length() - board.frontLength - board.distanceToUnwrapped
       //board.wrappedCells.size - board.solution.length() - board.frontLength - board.distanceToUnwrapped
 
-      val score = board.wrappedCells.size + (board.solution.boostersCount() * unwrappedCells * 0.1).round
+      val score = board.wrappedCells.size + (board.solution.boostersCount() * 50).round
       (score, -board.distanceToUnwrapped, - board.solution.length)
     }
 
