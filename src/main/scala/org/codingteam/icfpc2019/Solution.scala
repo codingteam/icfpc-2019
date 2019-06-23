@@ -242,7 +242,7 @@ class Solution(val reversedActions : Vector[Action]) {
     }
   }
 
-  def boostersCount() : Int = {
+  def usedBoostersCount() : Int = {
     reversedActions.filter(isBooster).size
   }
 }
