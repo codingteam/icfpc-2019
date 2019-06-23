@@ -15,6 +15,7 @@ case class Board(task : Task, bot : Bot,
                  solution: Solution,
                  // How many teleportation boosters we collected?
                  teleportsCount: Int,
+                 installedTeleports: Vector[Pos]
                 ) {
 
   def isValidPosition(pos : Pos) : Boolean = {
@@ -242,6 +243,7 @@ object Board {
       0, 0, 0,
       Set[Pos](),
       new Solution(Vector[Action]()),
-      0)
+      0,
+      Vector[Pos]())
   }
 }

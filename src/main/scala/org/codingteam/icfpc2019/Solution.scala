@@ -192,7 +192,9 @@ case object Reset extends Action {
 
   override def apply(board: Board): Board = {
     val newSolution = board.solution.addAction(Reset)
-    board.tick.copy(solution = newSolution)
+    val newInstalledTeleports = board.installedTeleports :+ board.bot.position
+    val newTeleportsCount = board.teleportsCount - 1
+    board.tick.copy(solution = newSolution, teleportsCount = newTeleportsCount, installedTeleports = newInstalledTeleports)
   }
 }
 
