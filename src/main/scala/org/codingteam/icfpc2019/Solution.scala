@@ -161,7 +161,8 @@ case object AttachFastWheels extends Action {
 
   override def apply(board : Board) : Board = {
     val newSolution = board.solution.addAction(AttachFastWheels)
-    val newFastWheels = 50
+    // We always tick the board *before* performing a movement, so we have to +1 the counter to compensate for that
+    val newFastWheels = 50 + 1
     println("Attach!")
     board.tick.copy(fastWheelsEnabled = true, remainingFastWheels = newFastWheels, solution = newSolution)
   }
@@ -173,7 +174,8 @@ case object StartDrill extends Action {
   override def apply(board : Board) : Board = {
     val newSolution = board.solution.addAction(StartDrill)
     val newRemainingDrills = board.remainingDrills - 1
-    board.tick.copy(remainingDrillTicks = 30, solution = newSolution, remainingDrills = newRemainingDrills)
+    // We always tick the board *before* performing a movement, so we have to +1 the counter to compensate for that
+    board.tick.copy(remainingDrillTicks = 30 + 1, solution = newSolution, remainingDrills = newRemainingDrills)
   }
 }
 

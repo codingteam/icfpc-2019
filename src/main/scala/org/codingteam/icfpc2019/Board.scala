@@ -186,7 +186,7 @@ case class Board(task : Task, bot : Bot,
 
   override def toString: String = {
     var result = new StringBuilder()
-    for (y <- task.map.minY to task.map.maxY) {
+    for (y <- task.map.maxY to task.map.minY by -1) {
       for (x <- task.map.minX to task.map.maxX) {
         val pos = Pos(x,y)
         val point =
