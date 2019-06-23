@@ -145,8 +145,8 @@ object AppEntry extends App {
 
     // TODO[F]: both length() and totalTime are approximations not taking cloning into account
     if (outputFile.exists() && outputFile.length() <= solution.totalTime) {
-      println(s"Result is ${if (outputFile.length() == solution.totalTime) "equal" else "WORSE"}" +
-        s" than ${outputPath}; NOT saving")
+      println(s"Result is ${if (outputFile.length() == solution.totalTime) "equal to" else "WORSE than"}" +
+        s" ${outputPath}; NOT saving")
       false
     } else {
       val writer = new PrintWriter(outputFile)
