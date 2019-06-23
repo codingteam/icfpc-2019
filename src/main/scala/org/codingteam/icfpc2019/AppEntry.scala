@@ -1,13 +1,15 @@
 package org.codingteam.icfpc2019
 
-import java.io.{File, PrintWriter}
+import java.io.{File, FileOutputStream, PrintWriter}
 import java.nio.file.{Files, Path, Paths}
 import java.util.concurrent.{Executors, TimeUnit}
+import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import fastparse.NoWhitespace._
 import fastparse._
 import main.scala.org.codingteam.icfpc2019.Board
 
+import scala.collection.JavaConverters._
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.io.Source
@@ -52,6 +54,8 @@ object AppEntry extends App {
       case Array("--directory", directory, "--cores", cores) => solveDirectory(directory, _, cores)
       case Array("--directory", directory, "--minutes", minutes, "--cores", cores) => solveDirectory(directory, minutes, cores)
 
+      case Array("--zip", directory) => zipResults(Paths.get(directory))
+
       case Array("--test-awt") =>
         val obstacle = Obstacle(List(
           Pos(4, 6),
@@ -92,6 +96,8 @@ object AppEntry extends App {
             |    to solve a particular problem
             |  --directory <path> [--minutes <num>] [--cores <num>]
             |    to solve all problems in a directory (recursive)
+            |  --zip <path>
+            |    to zip all the *.sol files in the output directory
             |""".stripMargin.format())
 
         val Parsed.Success(task, successIndex) = parse("(0,0),(10,0),(10,10),(0,10)#(0,0)##", parseTask(_))
@@ -106,7 +112,7 @@ object AppEntry extends App {
 
   run()
 
-  private def solveTask(taskFilePath: Path, detailedLogs: Boolean = true, maxDuration: Option[Duration] = None): Unit = {
+  private def solveTask(taskFilePath: Path, detailedLogs: Boolean = true, maxDuration: Option[Duration] = None): Boolean = {
     val source = Source.fromFile(taskFilePath.toFile)
     val contents = try source.mkString finally source.close()
     val Parsed.Success(task, successIndex) = parse(contents, parseTask(_))
@@ -115,7 +121,6 @@ object AppEntry extends App {
     if (detailedLogs) {
       println(task)
       println(board)
-      // println(successIndex)
     }
 
     val someSolution = Solver.solve(task, taskFilePath, detailedLogs, maxDuration)
@@ -124,7 +129,7 @@ object AppEntry extends App {
     }
     if (someSolution.isEmpty) {
       println(s"Task could not be solved: ${taskFilePath.getFileName}")
-      return
+      return false
     }
 
     val Some(solution) = someSolution
@@ -142,22 +147,22 @@ object AppEntry extends App {
     if (outputFile.exists() && outputFile.length() <= solution.totalTime) {
       println(s"Result is ${if (outputFile.length() == solution.totalTime) "equal" else "WORSE"}" +
         s" than ${outputPath}; NOT saving")
+      false
     } else {
       val writer = new PrintWriter(outputFile)
       try writer.print(solution) finally writer.close()
       println(s"Result saved to ${outputPath}")
+      true
     }
   }
 
   private def solveDirectory(pathString: String, minutesString: String = null, coresString: String = null): Unit = {
-    import scala.collection.JavaConverters._
-
     val path = Paths.get(pathString)
     val minutes = if (minutesString == null) DEFAULT_MINUTES else minutesString.toInt
     val duration = Duration(minutes, TimeUnit.MINUTES)
     val cores = if (coresString == null) DEFAULT_CORES else coresString.toInt
     val executor = Executors.newFixedThreadPool(cores)
-    try {
+    val solveResults = try {
       implicit val executionContext = ExecutionContext.fromExecutor(executor)
 
       val futures = Files.walk(path).iterator().asScala.filter(_.toString.endsWith(".desc")).map { file =>
@@ -168,6 +173,38 @@ object AppEntry extends App {
       Await.result(Future.sequence(futures), Duration.Inf)
     } finally {
       executor.shutdown()
+    }
+
+    if (solveResults.contains(true)) {
+      zipResults(path)
+    }
+  }
+
+  def zipResults(path: Path): Unit = {
+    println("Packing the results...")
+
+    val solFiles = Files.walk(path).iterator().asScala.filter(_.toString.endsWith(".sol")).toSeq
+    solFiles.map(_.getParent).distinct.foreach { directory =>
+      println(s"Processing ${directory.getFileName}...")
+      val zipFilePath = directory.resolve(s"${directory.getFileName}.zip")
+      val zipFile = new FileOutputStream(zipFilePath.toFile)
+      try {
+        val zipArchive = new ZipOutputStream(zipFile)
+        try {
+          directory.toFile.listFiles(_.toString.endsWith(".sol")).foreach { file =>
+            val entry = new ZipEntry(file.getName)
+            zipArchive.putNextEntry(entry)
+            zipArchive.write(Files.readAllBytes(file.toPath))
+            zipArchive.closeEntry()
+          }
+        } finally {
+          zipArchive.close()
+        }
+      } finally {
+        zipFile.close()
+      }
+
+      println(s"Ready: $zipFilePath")
     }
   }
 }
