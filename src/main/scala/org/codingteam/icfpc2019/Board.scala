@@ -12,7 +12,9 @@ case class Board(task : Task, bot : Bot,
                  remainingDrills: Int,
                  remainingDrillTicks : Int,
                  drilledObstacles : Set[Pos],
-                 solution: Solution
+                 solution: Solution,
+                 // How many teleportation boosters we collected?
+                 teleportsCount: Int,
                 ) {
 
   def isValidPosition(pos : Pos) : Boolean = {
@@ -55,6 +57,12 @@ case class Board(task : Task, bot : Bot,
     }
     val newDrill = if (remainingDrillTicks >= 1) remainingDrillTicks - 1 else 0
 
+    // Teleports
+    val newTeleportsCount = teleportsCount + (currentBooster() match {
+      case Some(Teleport(_)) => 1
+      case _ => 0
+    })
+
     val newBoosters = currentBooster() match {
       case None => boosters
       case Some(booster) => boosters.filter(b => b != booster)
@@ -66,7 +74,8 @@ case class Board(task : Task, bot : Bot,
       remainingDrills = newDrills,
       remainingDrillTicks = newDrill,
       fastWheelsEnabled = newWheelsEnabled,
-      hasFastWheels = newHasFastWheels)
+      hasFastWheels = newHasFastWheels,
+      teleportsCount = newTeleportsCount)
   }
 
   def isDrillEnabled() : Boolean = remainingDrillTicks > 0
@@ -211,7 +220,9 @@ case class Board(task : Task, bot : Bot,
 
     val drills = remainingDrillTicks.toString + " drill ticks, and " + remainingDrills + " drills, remain"
 
-    val aboutBoosters = boosters.mkString(", ") + s"\nhas fast wheels: $hasFastWheels, fast wheels enabled: $fastWheelsEnabled, remaining: $remainingFastWheels"
+    val aboutBoosters = boosters.mkString(", ") +
+      s"\nhas fast wheels: $hasFastWheels, fast wheels enabled: $fastWheelsEnabled, remaining: $remainingFastWheels" +
+      s"\nteleports count: $teleportsCount"
     result + "\n" + aboutBoosters + "\n" + drills + "\n" + solution.toString
   }
 
@@ -230,6 +241,7 @@ object Board {
       false, false,
       0, 0, 0,
       Set[Pos](),
-      new Solution(Vector[Action]()))
+      new Solution(Vector[Action]()),
+      0)
   }
 }
