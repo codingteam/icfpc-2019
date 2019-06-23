@@ -1,6 +1,6 @@
 package org.codingteam.icfpc2019
 
-import java.io.{File, FileOutputStream, PrintWriter}
+import java.io.{FileOutputStream, PrintWriter}
 import java.nio.file.{Files, Path, Paths}
 import java.util.concurrent.{Executors, TimeUnit}
 import java.util.zip.{ZipEntry, ZipOutputStream}
@@ -65,6 +65,9 @@ object AppEntry extends App {
 
       case Array("--zip", directory) => zipResults(Paths.get(directory))
 
+      case Array("--debug", path, steps) => debug(Paths.get(path), steps.toInt)
+      case Array("--debug", path) => debug(Paths.get(path), 0)
+
       case Array("--test-awt") =>
         val obstacle = Obstacle(List(
           Pos(4, 6),
@@ -119,6 +122,8 @@ object AppEntry extends App {
             |    to solve all problems in a directory (recursive)
             |  --zip <path>
             |    to zip all the *.sol files in the output directory
+            |  --debug <path-to-desc-or-sol> [steps]
+            |    enable interactive interpreter; will skip first [steps]
             |""".stripMargin.format())
 
         val Parsed.Success(task, successIndex) = parse("(0,0),(10,0),(10,10),(0,10)#(0,0)##", parseTask(_))
@@ -131,12 +136,23 @@ object AppEntry extends App {
     }
   }
 
+  private def replaceExtension(path: Path, extension: String): Path = {
+    val pathString = path.toString
+    val point = pathString.lastIndexOf('.')
+    if (point >= 0) Paths.get(pathString.take(point) + "." + extension)
+    else Paths.get(pathString + "." + extension)
+  }
+
   run()
 
-  private def solveTask(taskFilePath: Path, detailedLogs: Boolean = true, maxDuration: Option[Duration] = None): Boolean = {
-    val source = Source.fromFile(taskFilePath.toFile)
+  private def parseTaskFile(path: Path) = {
+    val source = Source.fromFile(path.toFile)
     val contents = try source.mkString finally source.close()
-    parse(contents, parseTask(_)) match {
+    parse(contents, parseTask(_))
+  }
+
+  private def solveTask(taskFilePath: Path, detailedLogs: Boolean = true, maxDuration: Option[Duration] = None): Boolean = {
+    parseTaskFile(taskFilePath) match {
       case error@Parsed.Failure(_, _, _) =>
         println(s"Cannot parse task file $taskFilePath: $error")
         false
@@ -158,14 +174,8 @@ object AppEntry extends App {
 
         val Some(solution) = someSolution
 
-        def replaceExtension(fileName: String, extension: String): String = {
-          val point = fileName.lastIndexOf('.')
-          if (point >= 0) fileName.take(point) + "." + extension
-          else fileName + "." + extension
-        }
-
-        val outputPath = replaceExtension(taskFilePath.toString, "sol")
-        val outputFile = new File(outputPath)
+        val outputPath = replaceExtension(taskFilePath, "sol")
+        val outputFile = outputPath.toFile
 
         // TODO[F]: both length() and totalTime are approximations not taking cloning into account
         if (outputFile.exists() && outputFile.length() <= solution.totalTime) {
@@ -227,5 +237,17 @@ object AppEntry extends App {
     }
 
     println(s"Ready: $zipFilePath")
+  }
+
+  private def debug(path: Path, startSteps: Int): Unit = {
+    val taskDefinitionPath = replaceExtension(path,"desc")
+    val solutionPath = replaceExtension(path, "sol")
+    println(s"Debugging $path to step $startSteps")
+
+    val Parsed.Success(task, _) = parseTaskFile(taskDefinitionPath)
+    val solution = Solution.parse(Source.fromFile(solutionPath.toFile))
+    val debugger = new Debugger(task, solution)
+    if (startSteps > 0) debugger.skipSteps(startSteps)
+    debugger.startInteractive()
   }
 }

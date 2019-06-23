@@ -2,6 +2,8 @@ package org.codingteam.icfpc2019
 
 import main.scala.org.codingteam.icfpc2019.{Board, Direction}
 
+import scala.io.Source
+
 sealed abstract class Action {
   def apply(board : Board) : Board
 
@@ -193,6 +195,28 @@ case class Shift(pos: Pos) extends Action {
   override def apply(board: Board): Board = {
     val newSolution = board.solution.addAction(Shift(pos))
     board.tick.copy(solution = newSolution)
+  }
+}
+
+object Solution {
+  def parse(source: Source) = {
+    val content = try source.mkString finally source.close()
+    val actions = content.toVector.map {
+      case 'W' => MoveUp
+      case 'S' => MoveDown
+      case 'A' => MoveLeft
+      case 'D' => MoveRight
+      case 'Z' => NoOp
+      case 'E' => TurnClockwise
+      case 'Q' => TurnCounterClockwise
+      // TODO[F]: case 'B' => AttachManipulator
+      case 'F' => AttachFastWheels
+      case 'L' => StartDrill
+      case 'R' => Reset
+      // TODO[F]: case 'T' => Shift
+      case char => throw new Exception(s"Cannot parse character '$char'")
+    }
+    new Solution(actions.reverse)
   }
 }
 
