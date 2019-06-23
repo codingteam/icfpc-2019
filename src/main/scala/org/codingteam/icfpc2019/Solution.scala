@@ -5,48 +5,40 @@ import main.scala.org.codingteam.icfpc2019.{Board, Bot, Direction}
 sealed abstract class Action {
   def apply(board : Board) : Board
 
-  def tickAndReplaceBotWith(board: Board, action: Action, newBot: Bot): Board = {
+  def moveBot(board: Board, fn : Pos => Pos) : Board = {
     val bot = board.bot
+    val newPos = fn(bot.position)
+    val newBot = bot.copy(position = newPos)
     val newWrappedCells = board.wrappedCells ++
       (bot.wrappedCells(board) ++ newBot.wrappedCells(board))
         .filter(pos => pos.x < board.task.map.maxX && pos.y < board.task.map.maxY)
-    val newSolution = board.solution.addAction(action)
 
-    var newBoosters = board.boosters
-    var newDrills = board.remainingDrills
-    val drill = Drill(newBot.position)
     var drilled = board.drilledObstacles
-    if (newBoosters.contains(drill)) {
-      println("Drill!")
-      newBoosters = newBoosters - drill
-      newDrills += 1
-    }
-    val ticked = board.tick
-
-    if (ticked.remainingDrillTicks > 0 && board.obstacles.exists(o => o.containsPosition(newBot.position)))
+    if (board.remainingDrillTicks > 0 && board.obstacles.exists(o => o.containsPosition(newBot.position)))
       drilled = drilled + newBot.position
 
-
-    ticked.copy(
-      bot = newBot,
-      solution = newSolution,
-      wrappedCells = newWrappedCells,
-      boosters = newBoosters,
-      drilledObstacles = drilled,
-      remainingDrills = newDrills)
-  }
-
-  def tickAndMoveBotBy(board: Board, action: Action, dx: Pos): Board = {
-    val bot = board.bot
-    val newBot = bot.copy(position = Pos(bot.position.x + dx.x, bot.position.y+ dx.y))
-    tickAndReplaceBotWith(board, action, newBot)
+    board.copy(bot = newBot, wrappedCells = newWrappedCells, drilledObstacles = drilled)
   }
 }
 case object MoveUp extends Action {
   override def toString: String = "W"
 
   override def apply(board : Board) : Board = {
-    tickAndMoveBotBy(board, MoveUp, Pos(0, 1))
+    val move : Pos => Pos = pos => Pos(pos.x, pos.y+1)
+    val ticked = board.tick
+    val newBoard = moveBot(ticked, move)
+    if (! newBoard.isValid()) {
+      newBoard
+    } else {
+      val newBoard2 =
+        if (ticked.isFastWheelsEnabled()) {
+          val b = moveBot(newBoard, move)
+          if (b.isValid()) b else newBoard
+        } else
+          newBoard
+      val newSolution = board.solution.addAction(MoveUp)
+      newBoard2.copy(solution = newSolution)
+    }
   }
 }
 
@@ -54,7 +46,21 @@ case object MoveDown extends Action {
   override def toString: String = "S"
 
   override def apply(board : Board) : Board = {
-    tickAndMoveBotBy(board, MoveDown, Pos(0, -1))
+    val move : Pos => Pos = pos => Pos(pos.x, pos.y-1)
+    val ticked = board.tick
+    val newBoard = moveBot(ticked, move)
+    if (! newBoard.isValid()) {
+      newBoard
+    } else {
+      val newBoard2 =
+        if (ticked.isFastWheelsEnabled()) {
+          val b = moveBot(newBoard, move)
+          if (b.isValid()) b else newBoard
+        } else
+          newBoard
+      val newSolution = board.solution.addAction(MoveDown)
+      newBoard2.copy(solution = newSolution)
+    }
   }
 }
 
@@ -62,7 +68,21 @@ case object MoveLeft extends Action {
   override def toString: String = "A"
 
   override def apply(board : Board) : Board = {
-    tickAndMoveBotBy(board, MoveLeft, Pos(-1, 0))
+    val move : Pos => Pos = pos => Pos(pos.x-1, pos.y)
+    val ticked = board.tick
+    val newBoard = moveBot(ticked, move)
+    if (! newBoard.isValid()) {
+      newBoard
+    } else {
+      val newBoard2 =
+        if (ticked.isFastWheelsEnabled()) {
+          val b = moveBot(newBoard, move)
+          if (b.isValid()) b else newBoard
+        } else
+          newBoard
+      val newSolution = board.solution.addAction(MoveLeft)
+      newBoard2.copy(solution = newSolution)
+    }
   }
 }
 
@@ -70,7 +90,21 @@ case object MoveRight extends Action {
   override def toString: String = "D"
 
   override def apply(board : Board) : Board = {
-    tickAndMoveBotBy(board, MoveRight, Pos(1, 0))
+    val move : Pos => Pos = pos => Pos(pos.x+1, pos.y)
+    val ticked = board.tick
+    val newBoard = moveBot(ticked, move)
+    if (! newBoard.isValid()) {
+      newBoard
+    } else {
+      val newBoard2 =
+        if (ticked.isFastWheelsEnabled()) {
+          val b = moveBot(newBoard, move)
+          if (b.isValid()) b else newBoard
+        } else
+          newBoard
+      val newSolution = board.solution.addAction(MoveRight)
+      newBoard2.copy(solution = newSolution)
+    }
   }
 }
 
@@ -78,7 +112,8 @@ case object NoOp extends Action {
   override def toString: String = "Z"
 
   override def apply(board : Board) : Board = {
-    tickAndMoveBotBy(board, NoOp, Pos(0, 0))
+    val newSolution = board.solution.addAction(NoOp)
+    board.tick.copy(solution = newSolution)
   }
 }
 
@@ -88,7 +123,8 @@ case object TurnClockwise extends Action {
   override def apply(board : Board) : Board = {
     val bot = board.bot
     val newBot = bot.copy(direction = Direction.clockwise(bot.direction))
-    tickAndReplaceBotWith(board, TurnClockwise, newBot)
+    val newSolution = board.solution.addAction(TurnClockwise)
+    board.tick.copy(solution = newSolution, bot = newBot)
   }
 }
 
@@ -98,7 +134,8 @@ case object TurnCounterClockwise extends Action {
   override def apply(board : Board) : Board = {
     val bot = board.bot
     val newBot = bot.copy(direction = Direction.counterclockwise(bot.direction))
-    tickAndReplaceBotWith(board, TurnCounterClockwise, newBot)
+    val newSolution = board.solution.addAction(TurnCounterClockwise)
+    board.tick.copy(solution = newSolution, bot = newBot)
   }
 }
 
@@ -108,7 +145,8 @@ case class AttachManipulator(pos: Pos) extends Action {
   override def apply(board : Board) : Board = {
     val bot = board.bot
     val newBot = bot.copy(extraManipulators = bot.extraManipulators + bot.makeRelative(pos))
-    tickAndReplaceBotWith(board, AttachManipulator(pos), newBot)
+    val newSolution = board.solution.addAction(AttachManipulator(pos))
+    board.tick.copy(solution = newSolution, bot = newBot)
   }
 }
 
@@ -117,7 +155,9 @@ case object AttachFastWheels extends Action {
 
   override def apply(board : Board) : Board = {
     val newSolution = board.solution.addAction(AttachFastWheels)
-    board.tick.copy(remainingFastWheels = 50, solution = newSolution)
+    val newFastWheels = 50
+    println("Attach!")
+    board.tick.copy(fastWheelsEnabled = true, remainingFastWheels = newFastWheels, solution = newSolution)
   }
 
 }
@@ -148,6 +188,9 @@ class Solution(reversedActions : Vector[Action]) {
         case StartDrill =>
           0.1
 
+        case AttachFastWheels =>
+          return 0
+
         case _ =>
           1.0
       }
@@ -156,15 +199,17 @@ class Solution(reversedActions : Vector[Action]) {
     reversedActions.map(actionCost).sum
   }
 
-  def drillsCount() : Int = {
-    def isDrill(a : Action) : Boolean = {
-      a match {
-        case StartDrill => true
-        case _ => false
-      }
+  def totalTime: Int = reversedActions.size
+
+  def isBooster(a : Action) : Boolean = {
+    a match {
+      case AttachFastWheels => true
+      case StartDrill => true
+      case _ => false
     }
-    reversedActions.filter(isDrill).size
   }
 
-  def totalTime: Int = reversedActions.size
+  def boostersCount() : Int = {
+    reversedActions.filter(isBooster).size
+  }
 }

@@ -6,6 +6,8 @@ case class Board(task : Task, bot : Bot,
                  wrappedCells : Set[Pos],
                  obstacles : List[Obstacle],
                  boosters: Set[Booster],
+                 hasFastWheels : Boolean,
+                 fastWheelsEnabled : Boolean,
                  remainingFastWheels : Int,
                  remainingDrills: Int,
                  remainingDrillTicks : Int,
@@ -36,14 +38,63 @@ case class Board(task : Task, bot : Bot,
   }
 
   def tick() : Board = {
-    val newWheels = if (remainingFastWheels >= 1) remainingFastWheels - 1 else 0
+    // Wheels
+    val newWheels = if (fastWheelsEnabled && remainingFastWheels >= 1) remainingFastWheels - 1 else 0
+    val newWheelsEnabled = if (fastWheelsEnabled && remainingFastWheels == 0) false else fastWheelsEnabled
+    val newHasFastWheels = if (isAtFastWheelsBooster())
+                             true
+                           else
+                             if (remainingFastWheels > 0)
+                                hasFastWheels
+                             else false
+
+    // Drills
+    var newDrills = currentBooster() match {
+      case Some(Drill(_)) => remainingDrills + 1
+      case _ => remainingDrills
+    }
     val newDrill = if (remainingDrillTicks >= 1) remainingDrillTicks - 1 else 0
-    copy(remainingFastWheels = newWheels, remainingDrillTicks = newDrill)
+    if (remainingDrillTicks > 0 && newDrill == 0)
+      newDrills -= 1
+
+    val newBoosters = currentBooster() match {
+      case None => boosters
+      case Some(booster) => boosters.filter(b => b != booster)
+    }
+
+    //println("Booster: " + currentBooster().toString)
+    copy(boosters = newBoosters,
+      remainingFastWheels = newWheels,
+      remainingDrills = newDrills,
+      remainingDrillTicks = newDrill,
+      fastWheelsEnabled = newWheelsEnabled,
+      hasFastWheels = newHasFastWheels)
   }
 
   def isDrillEnabled() : Boolean = remainingDrillTicks > 0
 
-  def isFastWheelsEnabled() : Boolean = remainingFastWheels > 0
+  def isFastWheelsEnabled() : Boolean = fastWheelsEnabled && remainingFastWheels > 0
+
+  def currentBooster() : Option[Booster] = {
+    boosters.filter(b => bot.position == b.pos).toList match {
+      case Nil => None
+      case booster :: _ => Some(booster)
+    }
+  }
+
+  def boosterAt(pos: Pos) : Option[Booster] = {
+    boosters.filter(b => b.pos == pos).toList match {
+      case Nil => None
+      case booster :: _ => Some(booster)
+    }
+  }
+
+  def isAtFastWheelsBooster() : Boolean = {
+    currentBooster() match {
+      case Some(FastWheels(_)) => true
+      case _ => false
+    }
+  }
 
   // TODO[M]: Replace with a full-fledged check. For now, I assume there are no obstacles
   def isWrapped(detailedLogs: Boolean) : Boolean = {
@@ -71,7 +122,7 @@ case class Board(task : Task, bot : Bot,
       for (y <- 0 until size.y.intValue()) {
         for (x <- 0 until size.x.intValue()) {
           val d = matrix(x)(y)
-          result = result + d.toString + " "
+          result = result + f"$d%2d" + " "
         }
         result = result + "\n"
       }
@@ -118,6 +169,12 @@ case class Board(task : Task, bot : Bot,
       //println(showMatrix())
       //println(s"Left: $left")
     } while (! stop && left > 0)
+
+    if (left == 0) {
+      d = 0
+      s = 0
+    }
+
     if (nearest)
       d
     else
@@ -139,12 +196,16 @@ case class Board(task : Task, bot : Bot,
             if (bot.wrappedCells(this).contains(pos))
               "∘"
             else
-              if (isValidPosition(pos))
-                  if (wrappedCells.contains(pos))
-                    "+"
-                  else
-                    " "
-                else "#"
+              boosterAt(pos) match {
+                case None =>
+                  if (isValidPosition(pos))
+                    if (wrappedCells.contains(pos))
+                      "+"
+                    else
+                      " "
+                  else "#"
+                case Some(booster) => booster.symbol()
+              }
         result.append(point)
       }
       result.append("\n")
@@ -152,12 +213,21 @@ case class Board(task : Task, bot : Bot,
 
     val drills = remainingDrillTicks.toString + " drill ticks, and " + remainingDrills + " drills, remain"
 
-    result + "\n" + drills + "\n" + solution.toString
+    val aboutBoosters = boosters.mkString(", ") + s"\nhas fast wheels: $hasFastWheels, fast wheels enabled: $fastWheelsEnabled, remaining: $remainingFastWheels"
+    result + "\n" + aboutBoosters + "\n" + drills + "\n" + solution.toString
   }
 }
 
 object Board {
   def apply(task : Task) : Board = {
-    Board(task, Bot(task.startPos, Direction.RIGHT, Set[Pos]()), Set[Pos](), task.obstacles, task.boosters.toSet, 0, 0, 0, Set[Pos](), new Solution(Vector[Action]()))
+    Board(task,
+      Bot(task.startPos, Direction.RIGHT, Set[Pos]()),
+      Set[Pos](),
+      task.obstacles,
+      task.boosters.toSet,
+      false, false,
+      0, 0, 0,
+      Set[Pos](),
+      new Solution(Vector[Action]()))
   }
 }
