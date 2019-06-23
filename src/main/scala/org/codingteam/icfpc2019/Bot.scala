@@ -103,17 +103,24 @@ case class Bot (position: Pos, direction : Direction, extraManipulators : Set[Po
     Pos(pos.x - position.x, pos.y - position.y)
   }
 
-  def occupiedCells() : Set[Pos] = {
+  private def baseCells() : Set[Pos] = {
     val x = position.x
     val y = position.y
 
-    val base = direction match {
+    direction match {
       case Direction.RIGHT => Set(position, Pos(x+1,y), Pos(x+1, y+1), Pos(x+1, y-1)).filter(pos => pos.isValid())
       case Direction.UP => Set(position, Pos(x-1,y+1), Pos(x,y+1), Pos(x+1,y+1)).filter(pos => pos.isValid())
       case Direction.LEFT => Set(position, Pos(x-1,y-1), Pos(x-1,y), Pos(x-1,y+1)).filter(pos => pos.isValid())
       case Direction.DOWN => Set(position, Pos(x-1,y-1), Pos(x,y-1), Pos(x+1, y-1)).filter(pos => pos.isValid())
     }
-    base ++ extraManipulators.map(m => translatePos(m))
+  }
+
+  private def absoluteExtraManipulators() : Set[Pos] = {
+    extraManipulators.map(m => translatePos(rotate(m,rotation())))
+  }
+
+  def occupiedCells() : Set[Pos] = {
+    baseCells() ++ absoluteExtraManipulators()
   }
 
   def boundingBox() : Set[Pos] = {
@@ -136,7 +143,13 @@ case class Bot (position: Pos, direction : Direction, extraManipulators : Set[Po
     if (p == p1 || p == p2)
       true
     else
-      line(p).abs <= 1
+      if (p1.x == p2.x) {
+        p.x == p1.x
+      } else if (p1.y == p2.y) {
+        p.y == p1.y
+      } else {
+        line(p).abs <= 1
+      }
   }
 
   def neighbours(board : Board) : Set[Pos] = {
@@ -145,8 +158,8 @@ case class Bot (position: Pos, direction : Direction, extraManipulators : Set[Po
   }
 
   def isWrapped(board: Board, p: Pos) : Boolean = {
-    if (board.isValidPosition(p))
-      true
+    if (!board.isValidPosition(p))
+      false
     else {
       val obstacles = boundingBox().filter(x => !board.isValidPosition(x))
 //      for (o <- obstacles) {
@@ -157,6 +170,7 @@ case class Bot (position: Pos, direction : Direction, extraManipulators : Set[Po
   }
 
   def wrappedCells(board : Board): Set[Pos] = {
-    occupiedCells().filter(isWrapped(board, _))
+    baseCells().filter(board.isValidPosition(_)) ++
+      absoluteExtraManipulators().filter(isWrapped(board, _))
   }
 }
