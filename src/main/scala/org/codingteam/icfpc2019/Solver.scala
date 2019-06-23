@@ -125,6 +125,10 @@ object Solver {
 
         var neighbours = trivialNeighbours(bestBoard)
 
+        neighbours = trivialNeighbours(TurnClockwise(bestBoard)) ++ neighbours
+
+        neighbours = trivialNeighbours(TurnCounterClockwise(bestBoard)) ++ neighbours
+
         if (bestBoard.remainingDrills > 0) {
           val withDrill = StartDrill(bestBoard)
           neighbours = withDrill +: (trivialNeighbours(withDrill) ++ neighbours)
