@@ -53,7 +53,7 @@ object Solver {
       //2*board.wrappedCells.size - board.solution.length() - board.frontLength - board.distanceToUnwrapped
       //board.wrappedCells.size - board.solution.length() - board.frontLength - board.distanceToUnwrapped
 
-      val score = board.wrappedCells.size
+      val score = board.wrappedCells.size + board.solution.usedBoostersCount() * 50
       (score, -board.distanceToUnwrapped, - board.solution.length)
     }
 

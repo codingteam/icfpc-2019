@@ -273,6 +273,9 @@ class Solution(val reversedActions : Vector[Action]) {
     a match {
       case AttachFastWheels => true
       case StartDrill => true
+      case Reset => true
+      // We don't count teleportation because if we do, the bot will just teleport on every step, gaming the metric
+      case Shift(_) => false
       case _ => false
     }
   }
