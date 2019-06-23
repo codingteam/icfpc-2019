@@ -156,13 +156,18 @@ object AppEntry extends App {
     val minutes = if (minutesString == null) DEFAULT_MINUTES else minutesString.toInt
     val duration = Duration(minutes, TimeUnit.MINUTES)
     val cores = if (coresString == null) DEFAULT_CORES else coresString.toInt
-    implicit val executor = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(cores))
+    val executor = Executors.newFixedThreadPool(cores)
+    try {
+      implicit val executionContext = ExecutionContext.fromExecutor(executor)
 
-    val futures = Files.walk(path).iterator().asScala.filter(_.toString.endsWith(".desc")).map { file =>
-      Future(solveTask(file, false, Some(duration)))
-    }.toVector
+      val futures = Files.walk(path).iterator().asScala.filter(_.toString.endsWith(".desc")).map { file =>
+        Future(solveTask(file, false, Some(duration)))
+      }.toVector
 
-    println(s"Awaiting for ${futures.size} tasks")
-    Await.result(Future.sequence(futures), Duration.Inf)
+      println(s"Awaiting for ${futures.size} tasks")
+      Await.result(Future.sequence(futures), Duration.Inf)
+    } finally {
+      executor.shutdown()
+    }
   }
 }
