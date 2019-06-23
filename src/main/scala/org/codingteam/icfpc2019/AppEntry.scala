@@ -13,6 +13,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.io.Source
+import scala.util.Random
 
 object AppEntry extends App {
   private val DEFAULT_MINUTES = 10
@@ -115,44 +116,48 @@ object AppEntry extends App {
   private def solveTask(taskFilePath: Path, detailedLogs: Boolean = true, maxDuration: Option[Duration] = None): Boolean = {
     val source = Source.fromFile(taskFilePath.toFile)
     val contents = try source.mkString finally source.close()
-    val Parsed.Success(task, successIndex) = parse(contents, parseTask(_))
+    parse(contents, parseTask(_)) match {
+      case Parsed.Failure(_, _, _) =>
+        println(s"Cannot parse task file $taskFilePath")
+        false
+      case Parsed.Success(task, successIndex) =>
+        val board = Board(task)
+        if (detailedLogs) {
+          println(task)
+          println(board)
+        }
 
-    val board = Board(task)
-    if (detailedLogs) {
-      println(task)
-      println(board)
-    }
+        val someSolution = Solver.solve(task, taskFilePath, detailedLogs, maxDuration)
+        if (detailedLogs) {
+          println(someSolution)
+        }
+        if (someSolution.isEmpty) {
+          println(s"Task could not be solved: ${taskFilePath.getFileName}")
+          return false
+        }
 
-    val someSolution = Solver.solve(task, taskFilePath, detailedLogs, maxDuration)
-    if (detailedLogs) {
-      println(someSolution)
-    }
-    if (someSolution.isEmpty) {
-      println(s"Task could not be solved: ${taskFilePath.getFileName}")
-      return false
-    }
+        val Some(solution) = someSolution
 
-    val Some(solution) = someSolution
+        def replaceExtension(fileName: String, extension: String): String = {
+          val point = fileName.lastIndexOf('.')
+          if (point >= 0) fileName.take(point) + "." + extension
+          else fileName + "." + extension
+        }
 
-    def replaceExtension(fileName: String, extension: String): String = {
-      val point = fileName.lastIndexOf('.')
-      if (point >= 0) fileName.take(point) + "." + extension
-      else fileName + "." + extension
-    }
+        val outputPath = replaceExtension(taskFilePath.toString, "sol")
+        val outputFile = new File(outputPath)
 
-    val outputPath = replaceExtension(taskFilePath.toString, "sol")
-    val outputFile = new File(outputPath)
-
-    // TODO[F]: both length() and totalTime are approximations not taking cloning into account
-    if (outputFile.exists() && outputFile.length() <= solution.totalTime) {
-      println(s"Result is ${if (outputFile.length() == solution.totalTime) "equal to" else "WORSE than"}" +
-        s" ${outputPath}; NOT saving")
-      false
-    } else {
-      val writer = new PrintWriter(outputFile)
-      try writer.print(solution) finally writer.close()
-      println(s"Result saved to ${outputPath}")
-      true
+        // TODO[F]: both length() and totalTime are approximations not taking cloning into account
+        if (outputFile.exists() && outputFile.length() <= solution.totalTime) {
+          println(s"Result is ${if (outputFile.length() == solution.totalTime) "equal to" else "WORSE than"}" +
+            s" $outputPath; NOT saving")
+          false
+        } else {
+          val writer = new PrintWriter(outputFile)
+          try writer.print(solution) finally writer.close()
+          println(s"Result saved to $outputPath")
+          true
+        }
     }
   }
 
@@ -165,7 +170,8 @@ object AppEntry extends App {
     val solveResults = try {
       implicit val executionContext = ExecutionContext.fromExecutor(executor)
 
-      val futures = Files.walk(path).iterator().asScala.filter(_.toString.endsWith(".desc")).map { file =>
+      val files = Files.walk(path).iterator().asScala.filter(_.toString.endsWith(".desc"))
+      val futures = Random.shuffle(files).map { file =>
         Future(solveTask(file, false, Some(duration)))
       }.toVector
 
@@ -182,29 +188,24 @@ object AppEntry extends App {
 
   def zipResults(path: Path): Unit = {
     println("Packing the results...")
-
-    val solFiles = Files.walk(path).iterator().asScala.filter(_.toString.endsWith(".sol")).toSeq
-    solFiles.map(_.getParent).distinct.foreach { directory =>
-      println(s"Processing ${directory.getFileName}...")
-      val zipFilePath = directory.resolve(s"${directory.getFileName}.zip")
-      val zipFile = new FileOutputStream(zipFilePath.toFile)
+    val zipFilePath = path.resolve(s"${path.getFileName}.zip")
+    val zipFile = new FileOutputStream(zipFilePath.toFile)
+    try {
+      val zipArchive = new ZipOutputStream(zipFile)
       try {
-        val zipArchive = new ZipOutputStream(zipFile)
-        try {
-          directory.toFile.listFiles(_.toString.endsWith(".sol")).foreach { file =>
-            val entry = new ZipEntry(file.getName)
-            zipArchive.putNextEntry(entry)
-            zipArchive.write(Files.readAllBytes(file.toPath))
-            zipArchive.closeEntry()
-          }
-        } finally {
-          zipArchive.close()
+        Files.walk(path).iterator().asScala.filter(_.toString.endsWith(".sol")).foreach { file =>
+          val entry = new ZipEntry(file.getFileName.toString)
+          zipArchive.putNextEntry(entry)
+          zipArchive.write(Files.readAllBytes(file))
+          zipArchive.closeEntry()
         }
       } finally {
         zipFile.close()
       }
-
-      println(s"Ready: $zipFilePath")
+    } finally {
+      zipFile.close()
     }
+
+    println(s"Ready: $zipFilePath")
   }
 }
