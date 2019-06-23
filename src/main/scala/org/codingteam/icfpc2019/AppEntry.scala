@@ -39,7 +39,10 @@ object AppEntry extends App {
 
   def parseMysteriousPoint[_: P]: P[MysteriousPoint] = P("X" ~ parsePos).map(MysteriousPoint(_))
 
-  def parseBooster[_: P]: P[Booster] = P(parseManipulatorExtension | parseFastWheels | parseDrill | parseMysteriousPoint)
+  def parseTeleport[_: P]: P[Teleport] = P("R" ~ parsePos).map(Teleport(_))
+
+  def parseBooster[_: P]: P[Booster] =
+    P(parseManipulatorExtension | parseFastWheels | parseDrill | parseMysteriousPoint | parseTeleport)
 
   def parseBoosters[_: P]: P[List[Booster]] = P(parseBooster.rep(sep = ";")).map(_.toList)
 

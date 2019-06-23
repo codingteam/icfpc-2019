@@ -18,3 +18,6 @@ case class Drill(pos: Pos) extends Booster {
 case class MysteriousPoint(pos: Pos) extends Booster {
   override def symbol(): String = "X"
 }
+case class Teleport(pos: Pos) extends Booster {
+  override def symbol(): String = "R"
+}
