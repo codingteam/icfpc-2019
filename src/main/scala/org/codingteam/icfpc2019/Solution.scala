@@ -179,8 +179,16 @@ case object StartDrill extends Action {
   }
 }
 
-class Solution(reversedActions : Vector[Action]) {
+class Solution(val reversedActions : Vector[Action]) {
   override def toString: String = reversedActions.reverseIterator.map(_.toString).mkString("")
+
+  override def equals(o: Any): Boolean = {
+    o match {
+      case that : Solution =>
+        this.reversedActions.equals(that.reversedActions)
+      case _ => false
+    }
+  }
 
   def addAction(action: Action): Solution = new Solution(action +: reversedActions)
 

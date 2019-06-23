@@ -216,6 +216,10 @@ case class Board(task : Task, bot : Bot,
     val aboutBoosters = boosters.mkString(", ") + s"\nhas fast wheels: $hasFastWheels, fast wheels enabled: $fastWheelsEnabled, remaining: $remainingFastWheels"
     result + "\n" + aboutBoosters + "\n" + drills + "\n" + solution.toString
   }
+
+  def withoutSolution(): Board = {
+    copy(solution = new Solution(Vector[Action]()))
+  }
 }
 
 object Board {
