@@ -72,7 +72,7 @@ weren't evaluated. Nice work!
 
 
 Thanks for a nice contest! Not all of us appreciated the mining challenge, but
-oh well.
+oh well; that's still days well spent.
 
 
 With our best regards,
