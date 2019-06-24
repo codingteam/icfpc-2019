@@ -7,7 +7,7 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import fastparse.NoWhitespace._
 import fastparse._
-import main.scala.org.codingteam.icfpc2019.Board
+import main.scala.org.codingteam.icfpc2019.{Board, Direction}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.Duration
@@ -79,6 +79,8 @@ object AppEntry extends App {
         println(s)
 
       case Array("--test-check", filepath) =>
+        println(Direction.diff(Direction.DOWN, Direction.RIGHT))
+        println(Direction.diff(Direction.UP, Direction.RIGHT))
         val source = Source.fromFile(filepath)
         val contents = try source.mkString finally source.close()
         val Parsed.Success(task, successIndex) = parse(contents, parseTask(_))
@@ -97,8 +99,8 @@ object AppEntry extends App {
         println(newBoard.calcDistanceToUnwrapped(false))
         println(newBoard.bot.wrappedCells(newBoard))
 
-        val ext = Pos(5,4)
-        val turned = TurnCounterClockwise(TurnCounterClockwise(board))
+        val ext = Pos(5,3)
+        val turned = TurnClockwise(board)
         val board2 = AttachManipulator(turned.bot.makeRelative(ext))(turned)
         println(board2)
 

@@ -56,7 +56,7 @@ object Direction extends Enumeration {
   // positive result: n COUNTERCLOCKWISE rotations
   // negative result: n CLOCKWISE rotations
   def diff(dir1 : Direction, dir2 : Direction) : Int = {
-    (dir2.id - dir1.id) % 4
+    (dir1.id - dir2.id) % 4
   }
 }
 
