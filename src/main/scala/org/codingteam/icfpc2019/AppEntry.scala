@@ -96,11 +96,15 @@ object AppEntry extends App {
         println(newBoard.getArea())
         println(newBoard.calcDistanceToUnwrapped(false))
         println(newBoard.bot.wrappedCells(newBoard))
-        var board2 = newBoard
-        for (pos <- newBoard.bot.neighbours(newBoard)) {
-          board2 = AttachManipulator(board2.bot.makeRelative(pos))(board2)
-        }
+
+        val ext = Pos(5,4)
+        val turned = TurnCounterClockwise(TurnCounterClockwise(board))
+        val board2 = AttachManipulator(turned.bot.makeRelative(ext))(turned)
         println(board2)
+
+        val board3 = TurnCounterClockwise(board2)
+        println(board3)
+        println(board3.bot.occupiedCells())
 
       case Array("--test-booster", filepath) =>
         val source = Source.fromFile(filepath)

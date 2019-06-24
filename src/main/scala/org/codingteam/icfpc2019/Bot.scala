@@ -46,9 +46,9 @@ object Direction extends Enumeration {
     else if (rot == -1)
       clockwise(dir)
     else if (rot > 1)
-      add(dir, rot - 1)
+      add(add(dir,1), rot - 1)
     else
-      add(dir, rot + 1)
+      add(add(dir,-1), rot + 1)
   }
 
   // positive result: n COUNTERCLOCKWISE rotations
@@ -83,9 +83,9 @@ case class Bot (position: Pos, direction : Direction, extraManipulators : Set[Po
     else if (rot == -1)
       Pos(pos.y, -pos.x)
     else if (rot > 1)
-      rotate(pos, rot - 1)
+      rotate(rotate(pos,1), rot - 1)
     else
-      rotate(pos, rot + 1)
+      rotate(rotate(pos, -1), rot + 1)
   }
 
   def translatePos(pos : Pos) : Pos = {
@@ -96,11 +96,15 @@ case class Bot (position: Pos, direction : Direction, extraManipulators : Set[Po
     // Current direciton of the bot can be different than RIGHT;
     // we want to store relative positions in extraManipulators
     // val relative = Pos(pos.x - position.x, pos.y - position.y)
-    rotate(pos, -rotation())
+    val result = rotate(pos, -rotation())
+    println(s"rot: $pos (${(-rotation())}) => $result")
+    result
   }
 
   def makeRelative(pos : Pos) : Pos = {
-    Pos(pos.x - position.x, pos.y - position.y)
+    val result = Pos(pos.x - position.x, pos.y - position.y)
+    println(s"makeRelative: $pos wrt $position => $result")
+    result
   }
 
   private def baseCells() : Set[Pos] = {
@@ -116,7 +120,7 @@ case class Bot (position: Pos, direction : Direction, extraManipulators : Set[Po
   }
 
   private def absoluteExtraManipulators() : Set[Pos] = {
-    extraManipulators.map(m => translatePos(rotate(m,rotation())))
+    extraManipulators.map(m => translatePos(rotatePos(m, direction)))
   }
 
   def occupiedCells() : Set[Pos] = {
