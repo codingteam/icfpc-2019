@@ -231,7 +231,6 @@ case class Bot (position: Pos, direction : Direction, extraManipulators : Set[Po
           true
       }
     }
-    baseCells().filter(board.isValidPosition(_)) ++
-      absoluteExtraManipulators().filter(p => board.isValidPosition(p) && isVisibleFromCenter(p))
+    occupiedCells().filter(board.isValidPosition(_))
   }
 }
