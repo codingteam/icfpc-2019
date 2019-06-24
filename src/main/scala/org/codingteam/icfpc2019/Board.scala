@@ -23,18 +23,86 @@ case class Board(task : Task, bot : Bot,
     (range contains ind) && (filled(ind - range.a) || drilledObstacles.contains(pos))
   }
 
+  private def isFront(pos : Pos) : Boolean = {
+    val x = pos.x
+    val y = pos.y
+    val neighbours = for {dx <- -1 to 1; dy <- -1 to 1}
+      yield Pos(x+dx, y+dy)
+    neighbours.exists(p => isValidPosition(p) && ! wrappedCells.contains(p))
+  }
+
   def calcFrontLength() : Int = {
-    def isFront(pos : Pos) : Boolean = {
-      val x = pos.x
-      val y = pos.y
-      val neighbours = for {dx <- -1 to 1; dy <- -1 to 1}
-        yield Pos(x+dx, y+dy)
-      neighbours.exists(p => isValidPosition(p) && ! wrappedCells.contains(p))
-    }
     wrappedCells.filter(isFront).size
   }
 
+  def calcObstaclesFrontLength(): Int = {
+    var len = 0
+
+    for (x <- task.map.minX until task.map.maxX) {
+      for (y <- task.map.minY until task.map.maxY) {
+        val pos = Pos(x, y)
+        val ind = pos.toIndex2D
+        if ((range contains ind) && !filled(ind - range.a)) {
+          // `ind` points inside an obstacle.
+          // Now the question is: is that the front of the obstacle?
+          if (isFront(pos)) {
+            len += 1
+          }
+        }
+      }
+    }
+
+    len
+  }
+
+  def calcObstaclesTouchedLength(): Int = {
+    var len = 0
+
+    for (x <- task.map.minX until task.map.maxX) {
+      for (y <- task.map.minY until task.map.maxY) {
+        val pos = Pos(x, y)
+        val ind = pos.toIndex2D
+        if ((range contains ind) && !filled(ind - range.a)) {
+          // `ind` is an obstacle. Does it has any wrapped neighbours?
+          val neighbours = List[Pos](Pos(x-1, y), Pos(x+1, y), Pos(x, y-1), Pos(x, y+1))
+          if (neighbours.exists(p => isValidPosition(p) && wrappedCells.contains(p))) {
+            len += 1
+          }
+        }
+      }
+    }
+
+    len
+  }
+
+  def calcCornersCount(): Int = {
+    var corners = 0
+
+    for (x <- task.map.minX until task.map.maxX) {
+      for (y <- task.map.minY until task.map.maxY) {
+        val pos = Pos(x, y)
+
+        val isUnwrapped = isValidPosition(pos) && !wrappedCells.contains(pos)
+
+        val neighbours = List[Pos](Pos(x-1, y), Pos(x+1, y), Pos(x, y-1), Pos(x, y+1))
+        val isInCorner = neighbours.count(p => !isValidPosition(p) || wrappedCells.contains(p)) > 1
+
+        if (isUnwrapped && isInCorner) {
+          corners += 1
+        }
+      }
+    }
+
+    corners
+  }
+
   lazy val frontLength : Int = calcFrontLength()
+
+  lazy val obstaclesFrontLength: Int = calcObstaclesFrontLength()
+
+  lazy val obstaclesTouchedLength: Int = calcObstaclesTouchedLength()
+
+  lazy val cornersCount: Int = calcCornersCount()
 
   def isValid() : Boolean = {
     isValidPosition(bot.position)
@@ -139,7 +207,7 @@ case class Board(task : Task, bot : Bot,
 
     var d : Int = 0
     var s : Int = 0
-    var prevFront = bot.wrappedCells(this)
+    var prevFront = Set[Pos](bot.position)
     var left = area - prevFront.size
     var isFreeCellMarked = false
     var stop = false
