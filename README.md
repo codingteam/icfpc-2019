@@ -77,8 +77,9 @@ oh well.
 
 With our best regards,
 Codingteam (in no particular order):
-    Akon32
-    Portnov Ilya
-    Alexander Batischev
-    Friedrich von Never
-    Hagane
+
+- Akon32
+- Portnov Ilya
+- Alexander Batischev
+- Friedrich von Never
+- Hagane
