@@ -239,6 +239,11 @@ object AppEntry extends App {
 
             case _ => return false
           }
+        } else {
+          val writer = new PrintWriter(outputFile)
+          try writer.print(solution) finally writer.close()
+          println(s"Result saved to $outputPath")
+          return true
         }
 
         return false

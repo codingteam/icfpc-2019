@@ -78,107 +78,38 @@ object Solver {
 
     def solve(task: Task, filePath: Path, detailedLogs: Boolean, maxDuration: Option[Duration]): Option[Solution] = {
       val fileName = filePath.getFileName
-      val initialBoard = Board(task)
 
+      var board = Board(task)
 
-      val open = new PriorityQueueSet(
-        PriorityQueue[Board](initialBoard)(Ordering.by(solutionLength)),
-        mutable.Set[Board]()
-      )
       if (detailedLogs) {
-        println("Starting with\n" + initialBoard.toString)
+        println("Starting with\n" + board.toString)
       } else {
         println(s"Starting on $fileName")
       }
-      var closed = Set[Board]()
 
       var iterationCount = 0
       val startedAt = System.nanoTime()
 
-      while (!open.isEmpty) {
+      while (!board.isWrapped(detailedLogs)) {
         iterationCount += 1
         if (maxDuration.isDefined && System.nanoTime() - startedAt > maxDuration.get.toNanos) {
           println(s"$fileName: failed due to timeout")
           return None
         }
 
-        if (detailedLogs) {
-          println("open   contains " + open.size.toString + " boards")
-          println("closed contains " + closed.size.toString + " boards")
-        }
-
-        val bestBoard = open.dequeue()
-        if (detailedLogs) {
-          println("best board is\n" + bestBoard.toString + " with score of " + solutionLength(bestBoard))
-          println("  and distance " + bestBoard.distanceToUnwrapped.toString)
-        } else if (iterationCount % 1000 == 0) {
-          println(s"$fileName heuristics: ${solutionLength(bestBoard)}")
-        }
-        if (bestBoard.isWrapped(detailedLogs)) {
-          if (detailedLogs) {
-            println("...and it's not wrapped yet")
-          }
-          return Some(bestBoard.solution)
-        }
-
-        closed = closed + bestBoard.withoutSolution()
-
-        var neighbours = trivialNeighbours(bestBoard)
-
-        neighbours = trivialNeighbours(TurnClockwise(bestBoard)) ++ neighbours
-
-        neighbours = trivialNeighbours(TurnCounterClockwise(bestBoard)) ++ neighbours
-
-        if (bestBoard.remainingDrills > 0) {
-          val withDrill = StartDrill(bestBoard)
-          neighbours = withDrill +: (trivialNeighbours(withDrill) ++ neighbours)
-        }
-
-        if (bestBoard.hasFastWheels && ! bestBoard.fastWheelsEnabled) {
-          val withWheels = AttachFastWheels(bestBoard)
-          neighbours = withWheels +: (trivialNeighbours(withWheels) ++ neighbours)
-        }
-
-        if (bestBoard.teleportsCount > 0) {
-          val withTeleportInstalled = Reset(bestBoard)
-          neighbours = withTeleportInstalled +: (trivialNeighbours(withTeleportInstalled) ++ neighbours)
-        }
-
-        for (teleport <- bestBoard.installedTeleports) {
-          val afterTeleporting = Shift(teleport)(bestBoard)
-          neighbours = afterTeleporting +: (trivialNeighbours(afterTeleporting) ++ neighbours)
-        }
-
-        if (bestBoard.extraManipulators > 0) {
-          for (pos <- bestBoard.bot.neighbours(bestBoard)) {
-            val action = AttachManipulator(bestBoard.bot.makeRelative(pos))
-            println(action)
-            neighbours = action(bestBoard) :: neighbours
-          }
-        }
-
-          //TurnCounterClockwise.apply(bestBoard),
-          // TODO[M]: Generate all the positions where a manipulator can be attached, and use them to create new Boards
-//          AttachManipulator.apply(bestBoard),
-//          AttachFastWheels.apply(bestBoard),
-//          StartDrill.apply(bestBoard)
-       // )
+        val neighbours = trivialNeighbours(board)
 
         val boardsToCheck = neighbours
             .filter(_.isValid())
-            .filter(b => !closed.contains(b.withoutSolution()))
-            .filter(!open.contains(_))
+            .sortBy(b => (-b.wrappedCells.size, b.distanceToUnwrapped))
 
-        if (detailedLogs) {
-          println("generated " + boardsToCheck.size.toString + " more boards to check")
-        }
-
-        for (board <- boardsToCheck) {
-          open.enqueue(board)
+        if (boardsToCheck.isEmpty) {
+          return None
+        } else {
+          board = boardsToCheck.head
         }
       }
 
-      println(s"$fileName: cannot find any solution")
-      None
+      return Some(board.solution)
     }
   }

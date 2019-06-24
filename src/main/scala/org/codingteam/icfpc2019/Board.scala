@@ -147,7 +147,7 @@ case class Board(task : Task, bot : Bot,
 
     var d : Int = 0
     var s : Int = 0
-    var prevFront = bot.wrappedCells(this)
+    var prevFront = Set[Pos](bot.position)
     var left = area - prevFront.size
     var isFreeCellMarked = false
     var stop = false
