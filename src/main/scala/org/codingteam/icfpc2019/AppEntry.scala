@@ -50,6 +50,25 @@ object AppEntry extends App {
 
   def parseTask[_: P]: P[Task] = P(parseTaskMap ~ "#" ~ parsePos ~ "#" ~ parseObstacles ~ "#" ~ parseBoosters ~ "\n".? ~ End).map((data) => Task(data._1, data._2, data._3, data._4))
 
+
+  def parseMoveUp[_: P]: P[Action] = P("W").map(Unit => MoveUp)
+  def parseMoveDown[_: P]: P[Action] = P("S").map(Unit => MoveDown)
+  def parseMoveLeft[_: P]: P[Action] = P("A").map(Unit => MoveLeft)
+  def parseMoveRight[_: P]: P[Action] = P("D").map(Unit => MoveRight)
+  def parseNoOp[_: P]: P[Action] = P("Z").map(Unit => NoOp)
+  def parseTurnClockwise[_: P]: P[Action] = P("E").map(Unit => TurnClockwise)
+  def parseTurnCounterClockwise[_: P]: P[Action] = P("Q").map(Unit => TurnCounterClockwise)
+  def parseAttachManipulator[_: P]: P[Action] = P("B" ~ parsePos).map((pos) => AttachManipulator(pos))
+  def parseAttachFastWheels[_: P]: P[Action] = P("F").map(Unit => AttachFastWheels)
+  def parseStartDrill[_: P]: P[Action] = P("L").map(Unit => StartDrill)
+  def parseReset[_: P]: P[Action] = P("R").map(Unit => Reset)
+  def parseShift[_: P]: P[Action] = P("T" ~ parsePos).map((pos) => Shift(pos))
+  def parseAction[_: P]: P[Action] = P(
+    parseMoveUp | parseMoveDown | parseMoveLeft | parseMoveRight | parseNoOp | parseTurnClockwise |
+      parseTurnCounterClockwise | parseAttachManipulator | parseAttachFastWheels | parseStartDrill |
+      parseReset | parseShift)
+  def parseSolution[_: P]: P[List[Action]] = P(parseAction.rep() ~ "\r".? ~ "\n".? ~ End).map(_.toList)
+
   private def run(): Unit = {
     args match {
       case Array("--problem-file", filepath) =>
@@ -167,6 +186,12 @@ object AppEntry extends App {
     parse(contents, parseTask(_))
   }
 
+  private def parseSolutionFile(path: Path) = {
+    val source = Source.fromFile(path.toFile)
+    val contents = try source.mkString finally source.close()
+    parse(contents, parseSolution(_))
+  }
+
   private def solveTask(taskFilePath: Path, detailedLogs: Boolean = true, maxDuration: Option[Duration] = None): Boolean = {
     parseTaskFile(taskFilePath) match {
       case error@Parsed.Failure(_, _, _) =>
@@ -194,16 +219,29 @@ object AppEntry extends App {
         val outputFile = outputPath.toFile
 
         // TODO[F]: both length() and totalTime are approximations not taking cloning into account
-        if (outputFile.exists() && outputFile.length() <= solution.totalTime) {
-          println(s"Result is ${if (outputFile.length() == solution.totalTime) "equal to" else "WORSE than"}" +
-            s" $outputPath; NOT saving")
-          false
-        } else {
-          val writer = new PrintWriter(outputFile)
-          try writer.print(solution) finally writer.close()
-          println(s"Result saved to $outputPath")
-          true
+        if (outputFile.exists()) {
+          parseSolutionFile(outputPath) match {
+            case error@Parsed.Failure(_, _, _) =>
+              println(s"Cannot parse solution file $outputPath: $error")
+              return false
+
+            case Parsed.Success(oldSolution, _) =>
+              if (oldSolution.length <= solution.totalTime) {
+                println(s"Result is ${if (outputFile.length() == solution.totalTime) "equal to" else "WORSE than"}" +
+                  s" $outputPath; NOT saving")
+                return false
+              } else {
+                val writer = new PrintWriter(outputFile)
+                try writer.print(solution) finally writer.close()
+                println(s"Result saved to $outputPath")
+                return true
+              }
+
+            case _ => return false
+          }
         }
+
+        return false
     }
   }
 
