@@ -6,6 +6,7 @@ case class Board(task : Task, bot : Bot,
                  wrappedCells : Set[Pos],
                  obstacles : List[Obstacle],
                  boosters: Set[Booster],
+                 extraManipulators : Int,
                  hasFastWheels : Boolean,
                  fastWheelsEnabled : Boolean,
                  remainingFastWheels : Int,
@@ -64,6 +65,12 @@ case class Board(task : Task, bot : Bot,
       case _ => 0
     })
 
+    // Extra manipulators
+    val newManipulators = currentBooster() match {
+      case Some(ManipulatorExtension(_)) => extraManipulators + 1
+      case _ => extraManipulators
+    }
+
     val newBoosters = currentBooster() match {
       case None => boosters
       case Some(booster) => boosters.filter(b => b != booster)
@@ -71,6 +78,7 @@ case class Board(task : Task, bot : Bot,
 
     //println("Booster: " + currentBooster().toString)
     copy(boosters = newBoosters,
+      extraManipulators = newManipulators,
       remainingFastWheels = newWheels,
       remainingDrills = newDrills,
       remainingDrillTicks = newDrill,
@@ -239,6 +247,7 @@ object Board {
       Set[Pos](),
       task.obstacles,
       task.boosters.toSet,
+      0,
       false, false,
       0, 0, 0,
       Set[Pos](),

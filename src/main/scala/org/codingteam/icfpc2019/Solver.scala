@@ -149,6 +149,14 @@ object Solver {
           neighbours = afterTeleporting +: (trivialNeighbours(afterTeleporting) ++ neighbours)
         }
 
+        if (bestBoard.extraManipulators > 0) {
+          for (pos <- bestBoard.bot.neighbours(bestBoard)) {
+            val action = AttachManipulator(bestBoard.bot.makeRelative(pos))
+            println(action)
+            neighbours = action(bestBoard) :: neighbours
+          }
+        }
+
           //TurnCounterClockwise.apply(bestBoard),
           // TODO[M]: Generate all the positions where a manipulator can be attached, and use them to create new Boards
 //          AttachManipulator.apply(bestBoard),
