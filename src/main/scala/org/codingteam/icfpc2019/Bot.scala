@@ -2,7 +2,9 @@ package main.scala.org.codingteam.icfpc2019
 
 import main.scala.org.codingteam.icfpc2019.Direction.Direction
 import main.scala.org.codingteam.icfpc2019.Rotation.Rotation
+import org.apache.commons.math3.geometry.euclidean.twod.Vector2D
 import org.codingteam.icfpc2019.Pos
+import org.codingteam.icfpc2019.spatialutils.{Index2D, Vector2DExt}
 
 object Rotation extends Enumeration {
   type Rotation = Value
@@ -174,7 +176,62 @@ case class Bot (position: Pos, direction : Direction, extraManipulators : Set[Po
   }
 
   def wrappedCells(board : Board): Set[Pos] = {
+
+    val center = position.toVector2D
+
+    def isVisibleFromCenter(p: Pos): Boolean = {
+      (position nearDistance p).toInt match {
+        case 0 => true
+        case 1 => board isValidPosition p
+        case _ =>
+          if (!(board isValidPosition p))
+            return false
+          val last = p.toVector2D
+          val dir = last subtract center
+
+          val scaleX = dir.x.signum
+          val scaleY = dir.y.signum
+          val absDir = new Vector2D(dir.x.abs, dir.y.abs)
+          val absDirAtan = math.atan2(absDir.y, absDir.x)
+
+          def nextInt(x: Double) = {
+            val a = math.ceil(x)
+            if (a == x) x + 1 else a
+          }
+
+          def nextV(v: Vector2D, ind: Index2D): (Vector2D, Index2D) = {
+            val corner = new Vector2D(nextInt(v.getX), nextInt(v.getY))
+            val cornerDir = corner subtract v
+            val cornerDirAtan = math.atan2(cornerDir.getY, cornerDir.getX)
+            val Eps = 1e-12
+            if (absDirAtan > cornerDirAtan + Eps) {
+              // +y
+              val x = v.x + dir.x / dir.y * (corner.y - v.y)
+              (new Vector2D(x, corner.y), ind + Index2D(0, 1))
+            } else if (absDirAtan < cornerDirAtan - Eps) {
+              // +x
+              val y = v.y + dir.y / dir.x * (corner.x - v.x)
+              (new Vector2D(corner.x, y), ind + Index2D(1, 0))
+            } else {
+              // +x +y
+              (corner, ind + Index2D.Ones)
+            }
+          }
+
+          var (shiftV, shiftInd) = (new Vector2D(0.5, 0.5), Index2D.Zeros)
+          val maxShift = Index2D(absDir.x.round.toInt, absDir.y.round.toInt)
+          while (shiftInd.x < maxShift.x || shiftInd.y < maxShift.y) {
+            val currentPos = Pos(position.x + shiftInd.x * scaleX, position.y + shiftInd.y * scaleY)
+            if (!(board isValidPosition currentPos))
+              return false
+            val (v, ind) = nextV(shiftV, shiftInd)
+            shiftV = v
+            shiftInd = ind
+          }
+          true
+      }
+    }
     baseCells().filter(board.isValidPosition(_)) ++
-      absoluteExtraManipulators().filter(isWrapped(board, _))
+      absoluteExtraManipulators().filter(p => board.isValidPosition(p) && isVisibleFromCenter(p))
   }
 }
