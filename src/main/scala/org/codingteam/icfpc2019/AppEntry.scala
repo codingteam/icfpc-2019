@@ -289,7 +289,7 @@ object AppEntry extends App {
           zipArchive.closeEntry()
         }
       } finally {
-        zipFile.close()
+        zipArchive.close()
       }
     } finally {
       zipFile.close()
