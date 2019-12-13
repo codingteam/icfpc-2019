@@ -80,6 +80,6 @@ Codingteam (in no particular order):
 
 - Akon32
 - Portnov Ilya
-- Alexander Batischev
+- Alexander Batischev ([report (in Russian)](https://blog.debiania.in.ua/posts/2019-12-13-icfpc-2019.html))
 - Friedrich von Never ([report (in Russian)](https://fornever.me/ru/posts/2019-07-05-icfpc-2019.html))
 - Hagane
